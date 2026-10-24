@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adhd-Planner (Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{ --radius:18px; --shadow: 0 2px 8px rgba(30,20,40,0.06), 0 10px 30px rgba(30,20,40,0.05); }
+  body[data-theme="pink"]{ --bg:#FDF0F5; --surface:#FFFFFF; --ink:#2E2A38; --muted:#9C8F9A; --line:#F5DCE6; --violet:#FF6FA5; --violet-dim:#FFE3EE; --coral:#FFB86B; --coral-dim:#FFF1E2; --sage:#4ECDC4; --sage-dim:#E3F9F7; --btn-bg:#2E2A38; --btn-text:#FFFFFF; }
+  body[data-theme="peach"]{ --bg:#FFF3E9; --surface:#FFFFFF; --ink:#33261E; --muted:#A6907F; --line:#FCE3CC; --violet:#FF8A5B; --violet-dim:#FFE7DA; --coral:#FFC94A; --coral-dim:#FFF6DE; --sage:#6FBF8B; --sage-dim:#E7F6EC; --btn-bg:#33261E; --btn-text:#FFFFFF; }
+  body[data-theme="dark"]{ --bg:#15121C; --surface:#1E1A28; --ink:#F1EDF8; --muted:#8F87A6; --line:#332C42; --violet:#B18CE8; --violet-dim:#2B2438; --coral:#F0B429; --coral-dim:#3A3020; --sage:#6FD3B0; --sage-dim:#1D3A30; --btn-bg:#8B5FD1; --btn-text:#FFFFFF; }
+  body[data-theme="mint"]{ --bg:#EFFCF6; --surface:#FFFFFF; --ink:#1F3B32; --muted:#7FA79A; --line:#D8F0E6; --violet:#2FBF8F; --violet-dim:#DFF7EE; --coral:#FFC857; --coral-dim:#FFF6DE; --sage:#4FA8D8; --sage-dim:#E4F3FB; --btn-bg:#1F3B32; --btn-text:#FFFFFF; }
+  body[data-theme="ocean"]{ --bg:#EEF5FC; --surface:#FFFFFF; --ink:#16324F; --muted:#7C97AE; --line:#D9E8F5; --violet:#2E86DE; --violet-dim:#E1EEFB; --coral:#FFB648; --coral-dim:#FFF3E0; --sage:#37B7A6; --sage-dim:#E1F6F2; --btn-bg:#16324F; --btn-text:#FFFFFF; }
+  body[data-theme="bubblegum"]{ --bg:#FDEEF3; --surface:#FFFFFF; --ink:#2A2230; --muted:#9B8790; --line:#F6D9E3; --violet:#F2678C; --violet-dim:#FCE3EA; --coral:#F0B429; --coral-dim:#FFF6DE; --sage:#5EC0DE; --sage-dim:#E6F6FB; --btn-bg:#2A2230; --btn-text:#FFFFFF; }
+  body[data-theme="bubblegum"] h1, body[data-theme="bubblegum"] .brand, body[data-theme="bubblegum"] .card h3, body[data-theme="bubblegum"] .battery-title, body[data-theme="bubblegum"] .overlay-card h2{ color:#B23A5D; }
+  body[data-theme="dark"] .tag.p-high{color:#FFB199;} body[data-theme="dark"] .tag.p-mid{color:#C9BFFF;} body[data-theme="dark"] .tag.p-low{color:#8FE0B3;}
+  body[data-theme="dark"] .count-pill{color:#C9BFFF;}
+  body[data-theme="dark"] .bopt.sel[data-lvl="low"]{color:#FFB199;} body[data-theme="dark"] .bopt.sel[data-lvl="mid"]{color:#C9BFFF;} body[data-theme="dark"] .bopt.sel[data-lvl="high"]{color:#8FE0B3;}
+
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;}
+  ::selection{background:var(--violet-dim);}
+  .app{display:flex;min-height:100vh;}
+
+  /* overlay / modal */
+  .overlay{position:fixed;inset:0;background:rgba(20,15,25,0.5);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;}
+  .overlay-card{background:var(--surface);border-radius:22px;padding:30px 28px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(20,15,25,0.3);}
+  .overlay-card.center{text-align:center;}
+  .overlay-card .dot{width:12px;height:12px;border-radius:50%;background:var(--coral);display:inline-block;margin-bottom:10px;}
+  .overlay-card h2{font-family:'Fredoka';font-size:22px;margin:0 0 6px;}
+  .overlay-card p{color:var(--muted);font-size:13.5px;margin:0 0 18px;line-height:1.5;}
+  .overlay-card input,.overlay-card select{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;font-family:'Inter';font-size:14px;outline:none;margin-bottom:10px;background:var(--surface);color:var(--ink);}
+  .overlay-card .btnrow{display:flex;gap:8px;margin-top:6px;}
+  .overlay-card .btn{flex:1;}
+  .overlay-foot{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.5;}
+  .modal-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;float:right;}
+
+  /* sidebar */
+  .sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--line);padding:22px 14px;display:flex;flex-direction:column;gap:4px;}
+  .brand{font-family:'Fredoka',sans-serif;font-weight:600;font-size:21px;margin:0 8px 16px;display:flex;align-items:center;gap:8px;}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--coral);display:inline-block;}
+  .navbtn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:none;background:transparent;color:var(--muted);font-family:'Inter';font-weight:600;font-size:13.8px;cursor:pointer;text-align:left;width:100%;transition:.15s;}
+  .navbtn:hover{background:var(--violet-dim);color:var(--ink);}
+  .navbtn.active{background:var(--btn-bg);color:var(--btn-text);}
+  .navbtn .ic{font-size:15px;width:18px;text-align:center;}
+  .sidebar-foot{margin-top:auto;padding:12px 10px 2px;font-size:11.5px;color:var(--muted);line-height:1.6;border-top:1px solid var(--line);}
+  .sidebar-foot b{color:var(--ink);}
+  .switchlink{background:none;border:none;color:var(--violet);font-weight:700;font-size:11.5px;cursor:pointer;padding:0;}
+
+  /* main */
+  .main{flex:1;padding:30px 36px 60px;max-width:1180px;}
+  .topline{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;flex-wrap:wrap;gap:12px;}
+  h1{font-family:'Fredoka',sans-serif;font-size:26px;margin:0 0 4px;}
+  .sub{color:var(--muted);font-size:13.5px;margin:0;}
+  .streakpill{background:var(--coral-dim);color:#B85630;font-weight:700;font-size:12.5px;padding:6px 14px;border-radius:99px;display:flex;align-items:center;gap:6px;}
+  body[data-theme="dark"] .streakpill{color:#FFD79B;}
+
+  .battery-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);margin-bottom:18px;}
+  .battery-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+  .battery-title{font-family:'Fredoka';font-weight:600;font-size:15px;}
+  .battery-title span{color:var(--muted);font-family:'Inter';font-weight:500;font-size:12px;display:block;margin-top:2px;}
+  .battery-opts{display:flex;gap:8px;}
+  .bopt{flex:1;padding:9px 6px;border-radius:12px;border:2px solid var(--line);background:var(--surface);cursor:pointer;text-align:center;font-family:'Inter';font-weight:600;font-size:12.5px;color:var(--muted);transition:.15s;}
+  .bopt:hover{border-color:var(--violet);}
+  .bopt.sel[data-lvl="low"]{background:var(--coral-dim);border-color:var(--coral);color:#B85630;}
+  .bopt.sel[data-lvl="mid"]{background:var(--violet-dim);border-color:var(--violet);color:#5B4FB0;}
+  .bopt.sel[data-lvl="high"]{background:var(--sage-dim);border-color:var(--sage);color:#357A52;}
+  .battery-note{font-size:12px;color:var(--muted);margin-top:9px;line-height:1.5;}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);margin-bottom:18px;}
+  .card h3{font-family:'Fredoka';font-size:15.5px;margin:0 0 14px;display:flex;align-items:center;gap:8px;justify-content:space-between;}
+  .card h3 .tiny{font-size:11px;color:var(--muted);font-family:'Inter';font-weight:500;}
+  .count-pill{background:var(--violet-dim);color:#5B4FB0;font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px;font-family:'Inter';}
+
+  /* rings row (dashboard) */
+  .rings-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;}
+  .ring-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 10px;box-shadow:var(--shadow);text-align:center;}
+  .ring-box{position:relative;width:84px;height:84px;margin:0 auto 8px;}
+  .ring-box svg{width:100%;height:100%;transform:rotate(-90deg);}
+  .ring-box .val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;}
+  .ring-name{font-size:12.5px;font-weight:700;color:var(--ink);}
+  .ring-pct{font-size:11px;color:var(--muted);}
+
+  .addrow{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .addrow input[type=text],.addrow input[type=number],.addrow input[type=date]{flex:1;min-width:120px;border:1.5px solid var(--line);border-radius:12px;padding:10px 14px;font-family:'Inter';font-size:13.5px;outline:none;background:var(--surface);color:var(--ink);}
+  .addrow input:focus{border-color:var(--violet);}
+  select{border:1.5px solid var(--line);border-radius:12px;padding:10px 10px;font-family:'Inter';font-size:12.8px;color:var(--ink);background:var(--surface);outline:none;}
+  select option{background:var(--surface);color:var(--ink);}
+  .btn{background:var(--btn-bg);color:var(--btn-text);border:none;border-radius:12px;padding:10px 18px;font-family:'Inter';font-weight:700;font-size:13px;cursor:pointer;transition:.15s;white-space:nowrap;}
+  .btn:hover{background:var(--violet);}
+  .btn.ghost{background:transparent;color:var(--muted);border:1.5px solid var(--line);}
+  .btn.ghost:hover{border-color:var(--violet);color:var(--violet);}
+  .btn.sm{padding:7px 12px;font-size:12px;}
+  .btn.full{width:100%;}
+
+  .task,.habit,.goal,.debtrow,.savingsrow,.budgetrow{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  .task:last-child,.habit:last-child,.goal:last-child,.debtrow:last-child,.savingsrow:last-child,.budgetrow:last-child{border-bottom:none;}
+  .check{width:21px;height:21px;border-radius:7px;border:2px solid var(--line);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;transition:.15s;}
+  .check.done{background:var(--sage);border-color:var(--sage);}
+  .task-text,.habit-name,.goal-name{flex:1;min-width:80px;font-size:14px;font-weight:500;outline:none;padding:2px 4px;border-radius:6px;}
+  .task-text:focus,.habit-name:focus,.goal-name:focus{background:var(--violet-dim);}
+  .task-text.done{color:var(--muted);text-decoration:line-through;}
+  .tag{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:99px;font-family:'Inter';white-space:nowrap;}
+  .tag.p-high{background:var(--coral-dim);color:#B85630;} .tag.p-mid{background:var(--violet-dim);color:#5B4FB0;} .tag.p-low{background:var(--sage-dim);color:#357A52;}
+  .iconbtn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14.5px;padding:2px 6px;}
+  .iconbtn:hover{color:var(--violet);}
+  .iconbtn.del:hover{color:#E0526B;}
+  .empty{color:var(--muted);font-size:13px;text-align:center;padding:20px 0;}
+
+  .streak{font-size:11.5px;color:var(--coral);font-weight:700;white-space:nowrap;}
+  body[data-theme="dark"] .streak{color:#FFD79B;}
+  .habit-dot{width:34px;height:34px;border-radius:10px;border:2px solid var(--line);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:.15s;}
+  .habit-dot.done{background:var(--sage);border-color:var(--sage);color:#fff;}
+
+  /* progress bars generic */
+  .pbar-track{flex:1;height:9px;border-radius:99px;background:var(--violet-dim);overflow:hidden;min-width:80px;}
+  .pbar-fill{height:100%;border-radius:99px;background:var(--sage);transition:width .4s;}
+  .pbar-fill.warn{background:var(--coral);}
+  .pbar-fill.over{background:#E0526B;}
+
+  /* goals */
+  .goal-meta{font-size:11.5px;color:var(--muted);width:70px;text-align:right;font-family:'JetBrains Mono',monospace;}
+
+  /* budget */
+  .budget-cat-icon{width:34px;height:34px;border-radius:10px;background:var(--violet-dim);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+  .budget-nums{width:120px;text-align:right;font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+  .budget-summary{display:flex;justify-content:space-between;padding:14px 4px 4px;font-weight:700;font-size:14px;border-top:1.5px solid var(--line);margin-top:6px;}
+
+  /* debt */
+  .strategy-toggle{display:flex;gap:8px;margin-bottom:14px;}
+  .strategy-btn{flex:1;padding:9px 6px;border-radius:12px;border:2px solid var(--line);background:var(--surface);cursor:pointer;font-weight:700;font-size:12.5px;color:var(--muted);text-align:center;}
+  .strategy-btn.sel{background:var(--coral-dim);border-color:var(--coral);color:#B85630;}
+  body[data-theme="dark"] .strategy-btn.sel{color:#FFD79B;}
+  .debt-name{flex:1;min-width:100px;font-weight:600;font-size:13.5px;}
+  .debt-info{font-size:11px;color:var(--muted);width:150px;font-family:'JetBrains Mono',monospace;text-align:right;}
+  .payoff-summary{background:var(--sage-dim);border-radius:14px;padding:14px 16px;margin-top:12px;font-size:13px;}
+  .payoff-summary b{color:#357A52;font-size:16px;}
+  body[data-theme="dark"] .payoff-summary b{color:#6FD3B0;}
+
+  /* savings */
+  .savings-ring-mini{position:relative;width:56px;height:56px;flex-shrink:0;}
+  .savings-ring-mini svg{width:100%;height:100%;transform:rotate(-90deg);}
+  .savings-ring-mini .v{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;}
+
+  /* calendar */
+  .cal-toggle{display:flex;gap:8px;}
+  .cal-toggle .btn.ghost.sel{background:var(--btn-bg);color:var(--btn-text);border-color:var(--btn-bg);}
+  .cal-nav{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-bottom:14px;}
+  .cal-nav .month-label{font-family:'Fredoka';font-weight:600;font-size:16px;}
+  .cal-navbtns{display:flex;gap:6px;}
+  .month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .month-dow{font-size:11px;font-weight:700;color:var(--muted);text-align:center;padding:4px 0;}
+  .month-cell{aspect-ratio:1;border-radius:10px;border:1.5px solid var(--line);padding:6px;cursor:pointer;display:flex;flex-direction:column;gap:3px;background:var(--surface);position:relative;overflow:hidden;}
+  .month-cell.other{opacity:.35;}
+  .month-cell.today{border-color:var(--violet);border-width:2px;}
+  .month-cell .dnum{font-size:12px;font-weight:700;}
+  .month-dots{display:flex;flex-wrap:wrap;gap:2px;}
+  .month-dot{width:6px;height:6px;border-radius:50%;}
+  .month-cell .bill-chip{font-size:8.5px;background:var(--coral-dim);color:#B85630;border-radius:5px;padding:1px 3px;margin-top:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #weekView{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .week-grid{display:grid;grid-template-columns:50px repeat(7,1fr);gap:4px;}
+  .week-head{font-size:11px;font-weight:700;color:var(--muted);text-align:center;padding:4px 0;}
+  .week-hour-label{font-size:10px;color:var(--muted);text-align:right;padding-right:6px;padding-top:2px;}
+  .week-col{position:relative;border-left:1px solid var(--line);}
+  .week-slot{height:36px;border-bottom:1px dashed var(--line);cursor:pointer;}
+  .week-slot:hover{background:var(--violet-dim);}
+  .week-event{position:absolute;left:2px;right:2px;border-radius:8px;padding:3px 6px;font-size:10.5px;font-weight:700;color:#fff;overflow:hidden;cursor:pointer;}
+  .cat-work{background:#6C8CFF;} .cat-personal{background:#4ECDC4;} .cat-health{background:#FF6FA5;} .cat-finance{background:#F0B429;} .cat-other{background:#9B8FB5;}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;}
+  .legend span{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;}
+  .legend .dot{width:8px;height:8px;border-radius:50%;}
+  .bills-list{display:flex;flex-direction:column;gap:8px;}
+  .bill-item{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--coral-dim);border-radius:12px;font-size:12.5px;}
+  .bill-item b{color:#B85630;} body[data-theme="dark"] .bill-item b{color:#FFD79B;}
+
+  /* affirmation card */
+  .affirm-card{background:linear-gradient(135deg,var(--violet-dim),var(--sage-dim));border-radius:var(--radius);padding:18px 20px;margin-bottom:18px;display:flex;align-items:center;gap:14px;}
+  .affirm-emoji{font-size:32px;}
+  .affirm-text b{display:block;font-family:'Fredoka';font-size:15px;margin-bottom:2px;}
+  .affirm-text span{font-size:12.5px;color:var(--muted);}
+
+  /* quick add */
+  .quickadd-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .quickadd-row .btn{flex:1;min-width:110px;}
+
+  /* notes */
+  .notes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;}
+  .note{background:#FFF9E9;border:1px solid #F0E5C0;border-radius:14px;padding:14px;min-height:110px;position:relative;}
+  body[data-theme="dark"] .note{background:#2A2438;border-color:#3A3350;}
+  body[data-theme="dark"] .note:nth-child(3n+3){background:#1D3A30;border-color:#284A3D;}
+  .note:nth-child(3n+2){background:var(--violet-dim);border-color:var(--line);}
+  .note:nth-child(3n+3){background:var(--sage-dim);border-color:#D6EBDE;}
+  .note textarea{width:100%;height:85px;border:none;background:transparent;resize:none;outline:none;font-family:'Inter';font-size:13px;color:var(--ink);}
+  .note .iconbtn.del{position:absolute;top:6px;right:6px;}
+
+  /* mood */
+  .mood-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+  .mood-opt{flex:1;min-width:48px;padding:12px 6px;border-radius:14px;border:2px solid var(--line);text-align:center;cursor:pointer;font-size:22px;background:var(--surface);}
+  .mood-opt.sel{border-color:var(--violet);background:var(--violet-dim);}
+  .mood-entry{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line);}
+  .mood-entry:last-child{border-bottom:none;}
+  .mood-entry .em{font-size:18px;}
+  .mood-entry .txt{font-size:13px;flex:1;outline:none;padding:2px 4px;border-radius:6px;}
+  .mood-entry .txt:focus{background:var(--violet-dim);}
+  .mood-entry .dt{font-size:10.5px;color:var(--muted);}
+  textarea.reflect{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;font-family:'Inter';font-size:13.5px;outline:none;resize:vertical;min-height:56px;background:var(--surface);color:var(--ink);}
+
+  .row{display:flex;gap:12px;flex-wrap:wrap;}
+  .row > .card{flex:1;min-width:260px;}
+  .grid2{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;align-items:start;}
+
+  /* analytics */
+  .ring-mini-wrap{display:flex;justify-content:center;padding:6px 0 4px;}
+  .ring-mini{position:relative;width:130px;height:130px;}
+  .ring-mini svg{width:100%;height:100%;}
+  .ring-mini-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .ring-mini-label span{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;}
+  .ring-mini-label small{font-size:10px;color:var(--muted);text-align:center;}
+  .hbar-row{display:flex;align-items:center;gap:10px;margin-bottom:11px;}
+  .hbar-row:last-child{margin-bottom:0;}
+  .hbar-label{width:76px;flex-shrink:0;font-size:11.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .hbar-frac{width:26px;flex-shrink:0;font-size:10.5px;color:var(--muted);text-align:right;font-family:'JetBrains Mono',monospace;}
+  .mood-trend-svg{width:100%;height:64px;}
+  .mood-trend-legend{display:flex;justify-content:space-between;margin-top:4px;}
+
+  /* help / how-to-use */
+  .help-intro{background:var(--accent-dim,var(--violet-dim));border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:13.5px;line-height:1.6;}
+  .help-item{border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden;background:var(--surface);}
+  .help-item summary{list-style:none;cursor:pointer;padding:13px 16px;font-family:'Fredoka';font-weight:600;font-size:14.5px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .help-item summary::-webkit-details-marker{display:none;}
+  .help-item summary .chev{color:var(--muted);font-size:12px;transition:.2s;flex-shrink:0;}
+  .help-item[open] summary .chev{transform:rotate(90deg);}
+  .help-item summary:hover{background:var(--violet-dim);}
+  .help-body{padding:0 16px 16px;font-size:13.5px;line-height:1.7;color:var(--ink);}
+  .help-body b{color:var(--ink);}
+  .help-body ul{margin:6px 0;padding-left:20px;}
+  .help-body li{margin-bottom:5px;}
+  .help-tag{display:inline-block;background:var(--sage-dim);color:#357A52;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;margin-left:8px;}
+  body[data-theme="dark"] .help-tag{color:#6FD3B0;}
+  .theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;}
+
+  /* ---- help / how-to-use ---- */
+  .help-search{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px 16px;font-family:'Inter';font-size:14px;outline:none;background:var(--surface);color:var(--ink);margin-bottom:18px;}
+  .help-search:focus{border-color:var(--violet);}
+  .help-group-title{font-family:'Fredoka';font-weight:600;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:22px 0 8px;}
+  .help-group-title:first-of-type{margin-top:0;}
+  details.help-item{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:8px;overflow:hidden;}
+  details.help-item summary{list-style:none;cursor:pointer;padding:13px 16px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:10px;justify-content:space-between;}
+  details.help-item summary::-webkit-details-marker{display:none;}
+  details.help-item summary .chev{color:var(--muted);font-size:13px;transition:transform .2s;flex-shrink:0;}
+  details.help-item[open] summary .chev{transform:rotate(90deg);}
+  details.help-item .help-body{padding:0 16px 16px;font-size:13.5px;color:var(--ink);line-height:1.65;}
+  details.help-item .help-body p{margin:0 0 10px;}
+  details.help-item .help-body ul{margin:0 0 10px;padding-left:20px;}
+  details.help-item .help-body li{margin-bottom:6px;}
+  details.help-item .help-body b{color:var(--ink);}
+  .help-note{background:var(--sage-dim);border-radius:12px;padding:12px 14px;font-size:12.5px;color:#357A52;margin-top:6px;}
+  body[data-theme="dark"] .help-note{color:#6FD3B0;}
+  .help-warn{background:var(--coral-dim);border-radius:12px;padding:12px 14px;font-size:12.5px;color:#B85630;margin-top:6px;}
+  body[data-theme="dark"] .help-warn{color:#FFD79B;}
+  .help-item.hidden{display:none;}
+  .theme-swatch{border-radius:14px;border:2px solid var(--line);padding:12px;cursor:pointer;text-align:center;}
+  .theme-swatch.sel{border-color:var(--violet);}
+  .theme-swatch .preview{height:36px;border-radius:8px;margin-bottom:8px;display:flex;overflow:hidden;}
+  .theme-swatch .preview i{flex:1;}
+  .theme-swatch .lbl{font-size:12px;font-weight:700;}
+
+  @media(max-width:900px){ .grid2{grid-template-columns:1fr;} .rings-row{grid-template-columns:repeat(2,1fr);} }
+
+  /* mobile hamburger topbar */
+  .mobile-topbar{display:none;}
+  .nav-backdrop{display:none;}
+  .sidebar-close{display:none;}
+
+  @media(max-width:760px){
+    .mobile-topbar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:60;}
+    .hamburger-btn{background:none;border:none;cursor:pointer;padding:6px;display:flex;flex-direction:column;gap:4px;justify-content:center;width:32px;height:32px;flex-shrink:0;}
+    .hamburger-btn span{display:block;width:100%;height:2.5px;border-radius:2px;background:var(--ink);transition:.2s;}
+    .mobile-brand{font-family:'Fredoka';font-weight:600;font-size:17px;display:flex;align-items:center;gap:8px;color:var(--ink);}
+    .mobile-brand .dot{width:9px;height:9px;border-radius:50%;background:var(--coral);display:inline-block;}
+
+    .app{flex-direction:column;}
+    .sidebar{
+      position:fixed;top:0;left:0;bottom:0;width:250px;max-width:80vw;
+      transform:translateX(-100%);transition:transform .25s ease;
+      z-index:100;flex-direction:column;overflow-y:auto;overflow-x:hidden;
+      padding:20px 16px;align-items:stretch;box-shadow:0 0 40px rgba(0,0,0,0.2);
+    }
+    .sidebar.open{transform:translateX(0);}
+    .sidebar-close{display:block;position:absolute;top:14px;right:14px;background:none;border:none;font-size:18px;color:var(--muted);cursor:pointer;padding:4px 8px;}
+    .brand{display:flex;}
+    .sidebar-foot{display:block;}
+    .navbtn{width:100%;flex-shrink:0;font-size:13.5px;padding:10px 12px;}
+
+    .nav-backdrop{display:none;position:fixed;inset:0;background:rgba(15,10,20,0.45);z-index:90;}
+    .nav-backdrop.open{display:block;}
+
+    .main{padding:16px 14px 40px;}
+    h1{font-size:21px;}
+    .rings-row{grid-template-columns:repeat(2,1fr);}
+    .card{padding:15px;}
+    .week-grid{grid-template-columns:36px repeat(7,minmax(58px,1fr));overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .month-grid{gap:4px;}
+    .month-cell{padding:4px;border-radius:8px;}
+    .month-cell .dnum{font-size:10.5px;}
+    .month-cell .bill-chip{font-size:7.5px;padding:1px 2px;}
+    .topline{flex-direction:column;align-items:flex-start;}
+    .cal-nav{flex-wrap:wrap;gap:8px;}
+    .cal-toggle{width:100%;}
+    .cal-toggle .btn{flex:1;}
+    .row{flex-direction:column;}
+    .row > .card{min-width:0;}
+    .strategy-toggle{flex-direction:column;}
+    .quickadd-row{flex-direction:column;}
+    .quickadd-row .btn{width:100%;}
+    .debt-info,.budget-nums{width:auto;text-align:left;}
+    .goal-meta{width:auto;}
+    .overlay-card{padding:24px 20px;max-height:88vh;overflow-y:auto;}
+    .ring-box{width:120px!important;height:120px!important;}
+    .timer-wrap .ring-box{width:130px!important;height:130px!important;}
+    table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  }
+  @media(max-width:480px){
+    .rings-row{grid-template-columns:repeat(2,1fr);gap:8px;}
+    .ring-card{padding:12px 6px;}
+    .ring-box{width:64px!important;height:64px!important;}
+    .ring-box .val{font-size:11px!important;}
+  }
+  @media(max-width:420px){
+    .battery-opts{flex-direction:column;}
+    .addrow{flex-direction:column;}
+    .addrow input,.addrow select{width:100%;min-width:0;}
+    select{width:100%;}
+    .theme-grid{grid-template-columns:repeat(2,1fr);}
+    .navbtn{font-size:11.5px;padding:8px 9px;}
+    .navbtn .ic{width:14px;font-size:13px;}
+    h1{font-size:19px;}
+    .overlay-card{padding:20px 16px;}
+    .month-cell{border-radius:6px;}
+  }
+  @media(max-width:340px){
+    .rings-row{grid-template-columns:1fr 1fr;}
+    .sidebar{padding:8px;}
+    .navbtn{font-size:10.5px;padding:7px 8px;}
+  }
+</style>
+</head>
+<body data-theme="bubblegum">
+
+<div class="overlay" id="authOverlay" style="display:none;">
+  <div class="overlay-card center">
+    <span class="dot"></span>
+    <h2>Welcome to Adhd-Planner</h2>
+    <p>Your data stays on this device only — nothing is uploaded anywhere. Just tell us what to call you.</p>
+    <input type="text" id="authName" placeholder="Your name">
+    <button class="btn full" onclick="signIn()">Get started</button>
+    <div class="overlay-foot">This is a local profile, not a cloud account — it just personalizes your greeting on this browser.</div>
+  </div>
+</div>
+
+<div class="overlay" id="quickAddOverlay" style="display:none;">
+  <div class="overlay-card">
+    <button class="modal-close" onclick="closeQuickAdd()">✕</button>
+    <h2 id="qaTitle">Quick Add</h2>
+    <div id="qaFields"></div>
+    <div class="btnrow">
+      <button class="btn ghost" onclick="closeQuickAdd()">Cancel</button>
+      <button class="btn" onclick="submitQuickAdd()">Add</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="confirmOverlay" style="display:none;">
+  <div class="overlay-card center">
+    <p id="confirmMsg" style="margin-bottom:16px;"></p>
+    <div class="btnrow">
+      <button class="btn ghost" onclick="closeConfirm()">Cancel</button>
+      <button class="btn" id="confirmYesBtn">Yes, do it</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="demoOverlay" style="display:none;z-index:1100;">
+  <div class="overlay-card center">
+    <span class="dot"></span>
+    <h2>🔒 Full version feature</h2>
+    <p id="demoMsg" style="margin-bottom:10px;"></p>
+    <p style="font-size:12.5px;">The full version gives you unlimited entries, your own private planner on your device, and backup &amp; restore.</p>
+    <div class="btnrow">
+      <button class="btn ghost" onclick="document.getElementById('demoOverlay').style.display='none'">Keep exploring</button>
+      <a class="btn" id="demoBuy" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;display:inline-flex;align-items:center;justify-content:center;">Get full version</a>
+    </div>
+  </div>
+</div>
+
+<div class="mobile-topbar">
+  <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileNav()" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="mobile-brand"><span class="dot"></span>Adhd-Planner</div>
+</div>
+<div class="nav-backdrop" id="navBackdrop" onclick="closeMobileNav()"></div>
+
+<div class="app">
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-close" id="sidebarCloseBtn" onclick="closeMobileNav()">✕</button>
+    <div class="brand"><span class="dot"></span>Adhd-Planner</div>
+    <button class="navbtn active" data-view="home"><span class="ic">◆</span>Home</button>
+    <button class="navbtn" data-view="tasks"><span class="ic">☑</span>Tasks</button>
+    <button class="navbtn" data-view="goals"><span class="ic">◎</span>Goals</button>
+    <button class="navbtn" data-view="habits"><span class="ic">↻</span>Habits</button>
+    <button class="navbtn" data-view="budget"><span class="ic">$</span>Budget</button>
+    <button class="navbtn" data-view="planner"><span class="ic">▦</span>Planner</button>
+    <button class="navbtn" data-view="notes"><span class="ic">✎</span>Brain Dump</button>
+    <button class="navbtn" data-view="mood"><span class="ic">☺</span>Reflection</button>
+    <button class="navbtn" data-view="analytics"><span class="ic">◧</span>Analytics</button>
+    <button class="navbtn" data-view="settings"><span class="ic">⚙</span>Settings</button>
+    <button class="navbtn" data-view="help"><span class="ic">❓</span>How to Use</button>
+    <div class="sidebar-foot">Signed in as <b id="sidebarName">—</b><br><button class="switchlink" onclick="switchProfile()">🔒 Switch profile</button></div>
+  </div>
+
+  <div class="main">
+    <div id="demoBanner" style="position:sticky;top:0;z-index:50;margin:0 0 14px;padding:10px 14px;border-radius:12px;background:var(--surface);border:1.5px solid var(--line);font-size:13px;line-height:1.5;box-shadow:0 4px 14px rgba(20,15,25,.08);">
+      <b>DEMO</b> · sample data · <span id="demoLeft"></span> · changes are not saved (refresh resets everything).
+      <a id="demoBannerLink" target="_blank" rel="noopener" style="color:inherit;font-weight:700;">Get the full version →</a>
+    </div>
+
+    <!-- HOME -->
+    <div class="view" id="view-home">
+      <div class="topline">
+        <div><h1 id="greeting">Hey 👋</h1><p class="sub" id="todaydate"></p></div>
+        <div class="streakpill">🔥 <span id="homeStreak">0</span> day streak</div>
+      </div>
+
+      <div class="rings-row" id="dashRings"></div>
+
+      <div class="affirm-card">
+        <div class="affirm-emoji">🌱</div>
+        <div class="affirm-text"><b id="affirmLine">Progress, not perfection.</b><span id="affirmSub">Small steps still count.</span></div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <div class="battery-card">
+            <div class="battery-top"><div class="battery-title">Brain Battery <span>How much capacity do you have today? Be honest.</span></div></div>
+            <div class="battery-opts" id="batteryOpts">
+              <div class="bopt" data-lvl="low">🔋 Low</div><div class="bopt" data-lvl="mid">🔋 Medium</div><div class="bopt" data-lvl="high">🔋 High</div>
+            </div>
+            <div class="battery-note" id="batteryNote"></div>
+          </div>
+
+          <div class="card">
+            <h3>Today's Plan <span class="count-pill" id="topCount">0/3</span></h3>
+            <div id="topThree"></div>
+            <p class="empty" id="topEmpty">Star up to 3 tasks in the Tasks tab to plan your day.</p>
+          </div>
+
+          <div class="card">
+            <h3>Quick Add</h3>
+            <div class="quickadd-row">
+              <button class="btn ghost" onclick="openQuickAdd('task')">+ New Task</button>
+              <button class="btn ghost" onclick="openQuickAdd('goal')">+ New Goal</button>
+              <button class="btn ghost" onclick="openQuickAdd('expense')">+ New Expense</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <h3>Focus Timer</h3>
+            <div class="timer-wrap" style="padding:8px 0 2px;">
+              <div class="ring-box" style="width:150px;height:150px;">
+                <svg viewBox="0 0 150 150"><circle cx="75" cy="75" r="66" stroke="var(--line)" stroke-width="10" fill="none"/><circle id="ringProgress" cx="75" cy="75" r="66" stroke="var(--violet)" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="414.7" stroke-dashoffset="0"/></svg>
+                <div class="val" style="flex-direction:column;"><span id="timerDisplay" style="font-size:22px;">25:00</span><small id="timerMode" style="font-size:9px;color:var(--muted);font-weight:600;">FOCUS</small></div>
+              </div>
+              <div class="timer-presets" id="presets" style="display:flex;gap:6px;justify-content:center;margin-top:12px;flex-wrap:wrap;">
+                <div class="preset sel" data-min="25">25m</div><div class="preset" data-min="15">15m</div><div class="preset" data-min="45">45m</div><div class="preset" data-min="5">5m break</div>
+              </div>
+              <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;">
+                <button class="btn sm" id="startBtn" onclick="toggleTimer()">Start</button>
+                <button class="btn ghost sm" onclick="resetTimer()">Reset</button>
+              </div>
+              <div class="sub" style="text-align:center;margin-top:8px;" id="sessionCount">0 sessions today</div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Habits today</h3>
+            <div id="todayHabits"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASKS -->
+    <div class="view" id="view-tasks" style="display:none;">
+      <div class="topline"><div><h1>Tasks</h1><p class="sub">Brain dump it, sort it later. Star up to 3 for today. Click text to edit.</p></div></div>
+      <div class="card">
+        <div class="addrow">
+          <input type="text" id="taskInput" placeholder="What needs doing?">
+          <select id="prioritySelect"><option value="high">High</option><option value="mid" selected>Medium</option><option value="low">Low</option></select>
+          <button class="btn" onclick="addTask()">Add</button>
+        </div>
+        <div id="taskList"></div>
+        <p class="empty" id="taskEmpty">No tasks yet — add your first one above.</p>
+      </div>
+    </div>
+
+    <!-- GOALS -->
+    <div class="view" id="view-goals" style="display:none;">
+      <div class="topline"><div><h1>Goals</h1><p class="sub">Bigger things you're working toward. Track progress in your own units.</p></div></div>
+      <div class="card">
+        <div class="addrow">
+          <input type="text" id="goalInput" placeholder="Goal name, e.g. Read 12 books">
+          <input type="number" id="goalTarget" placeholder="Target #" style="max-width:100px;">
+          <input type="text" id="goalUnit" placeholder="unit (books)" style="max-width:110px;">
+          <button class="btn" onclick="addGoal()">Add</button>
+        </div>
+        <div id="goalList"></div>
+        <p class="empty" id="goalEmpty">No goals yet — add one above.</p>
+      </div>
+    </div>
+
+    <!-- HABITS -->
+    <div class="view" id="view-habits" style="display:none;">
+      <div class="topline"><div><h1>Habits</h1><p class="sub">Small and repeatable beats big and abandoned. Click name to rename.</p></div></div>
+      <div class="card">
+        <div class="addrow">
+          <input type="text" id="habitInput" placeholder="e.g. Drink water, Take meds, Stretch">
+          <button class="btn" onclick="addHabit()">Add</button>
+        </div>
+        <div id="habitList"></div>
+        <p class="empty" id="habitEmpty">No habits yet — start with just one or two.</p>
+      </div>
+    </div>
+
+    <!-- BUDGET -->
+    <div class="view" id="view-budget" style="display:none;">
+      <div class="topline"><div><h1>Budget</h1><p class="sub">Budget tracker, debt payoff calculator, and savings goals — all in one place.</p></div></div>
+
+      <div class="card">
+        <h3>Budget Tracker <span class="count-pill" id="budgetPctPill">0%</span></h3>
+        <div class="addrow">
+          <input type="text" id="budgetCatInput" placeholder="Category, e.g. Groceries">
+          <input type="number" id="budgetAmtInput" placeholder="Budgeted $">
+          <button class="btn" onclick="addBudgetCat()">Add</button>
+        </div>
+        <div id="budgetList"></div>
+        <p class="empty" id="budgetEmpty">No budget categories yet.</p>
+        <div class="budget-summary" id="budgetSummary"></div>
+      </div>
+
+      <div class="row">
+        <div class="card">
+          <h3>Debt Payoff Calculator</h3>
+          <div class="strategy-toggle" id="strategyToggle">
+            <div class="strategy-btn sel" data-s="avalanche">Avalanche<br><small style="font-weight:500;">highest interest first</small></div>
+            <div class="strategy-btn" data-s="snowball">Snowball<br><small style="font-weight:500;">smallest balance first</small></div>
+          </div>
+          <div class="addrow">
+            <input type="text" id="debtName" placeholder="Debt name">
+            <input type="number" id="debtBalance" placeholder="Balance $">
+            <input type="number" id="debtRate" placeholder="APR %">
+            <input type="number" id="debtMin" placeholder="Min pay $">
+          </div>
+          <button class="btn ghost full" onclick="addDebt()" style="margin-bottom:12px;">+ Add debt</button>
+          <div id="debtList"></div>
+          <p class="empty" id="debtEmpty">No debts added.</p>
+          <div class="addrow" style="margin-top:10px;">
+            <input type="number" id="debtExtra" placeholder="Extra $ toward payoff each month" value="0">
+          </div>
+          <div id="payoffResult"></div>
+        </div>
+
+        <div class="card">
+          <h3>Savings Goals</h3>
+          <div class="addrow">
+            <input type="text" id="savingsName" placeholder="Goal, e.g. Emergency Fund">
+            <input type="number" id="savingsTarget" placeholder="Target $">
+          </div>
+          <button class="btn ghost full" onclick="addSavingsGoal()" style="margin-bottom:12px;">+ Add savings goal</button>
+          <div id="savingsList"></div>
+          <p class="empty" id="savingsEmpty">No savings goals yet.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLANNER -->
+    <div class="view" id="view-planner" style="display:none;">
+      <div class="topline">
+        <div><h1>Planner</h1><p class="sub">Monthly calendar with bill reminders + weekly time-blocking.</p></div>
+        <div class="cal-toggle">
+          <button class="btn ghost sel" id="viewMonthBtn" onclick="setCalView('month')">📅 Monthly</button>
+          <button class="btn ghost" id="viewWeekBtn" onclick="setCalView('week')">🕐 Weekly</button>
+        </div>
+      </div>
+
+      <div id="upcomingBillsWrap" class="card" style="display:none;">
+        <h3>Upcoming bills</h3>
+        <div class="bills-list" id="billsList"></div>
+      </div>
+
+      <div class="card">
+        <div class="cal-nav">
+          <div class="cal-navbtns"><button class="btn ghost sm" onclick="calPrev()">←</button><button class="btn ghost sm" onclick="calToday()">Today</button><button class="btn ghost sm" onclick="calNext()">→</button></div>
+          <div class="month-label" id="calLabel"></div>
+          <div></div>
+        </div>
+        <div id="monthView"></div>
+        <div id="weekView" style="display:none;"></div>
+        <div class="legend">
+          <span><i class="dot cat-work" style="width:8px;height:8px;border-radius:50%;display:inline-block;"></i>Work</span>
+          <span><i class="dot cat-personal" style="width:8px;height:8px;border-radius:50%;display:inline-block;"></i>Personal</span>
+          <span><i class="dot cat-health" style="width:8px;height:8px;border-radius:50%;display:inline-block;"></i>Health</span>
+          <span><i class="dot cat-finance" style="width:8px;height:8px;border-radius:50%;display:inline-block;"></i>Finance</span>
+          <span><i class="dot cat-other" style="width:8px;height:8px;border-radius:50%;display:inline-block;"></i>Other</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTES -->
+    <div class="view" id="view-notes" style="display:none;">
+      <div class="topline"><div><h1>Brain Dump</h1><p class="sub">Get it out of your head before it's forgotten. No structure required.</p></div></div>
+      <div class="card">
+        <button class="btn" onclick="addNote()" style="margin-bottom:14px;">+ New sticky note</button>
+        <div class="notes-grid" id="notesGrid"></div>
+      </div>
+    </div>
+
+    <!-- MOOD -->
+    <div class="view" id="view-mood" style="display:none;">
+      <div class="topline"><div><h1>Reflection</h1><p class="sub">A one-line honest check-in, most days, is enough.</p></div></div>
+      <div class="card">
+        <h3>How's today?</h3>
+        <div class="mood-row" id="moodRow">
+          <div class="mood-opt" data-m="😞">😞</div><div class="mood-opt" data-m="😐">😐</div><div class="mood-opt" data-m="🙂">🙂</div><div class="mood-opt" data-m="😄">😄</div><div class="mood-opt" data-m="🤯">🤯</div>
+        </div>
+        <textarea class="reflect" id="reflectInput" placeholder="What made today what it was?"></textarea>
+        <div style="margin-top:10px;"><button class="btn" onclick="saveMood()">Log it</button></div>
+      </div>
+      <div class="card">
+        <h3>Past entries <span class="sub" style="font-size:11px;">(click text to edit)</span></h3>
+        <div id="moodLog"></div>
+        <p class="empty" id="moodEmpty">No entries yet.</p>
+      </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div class="view" id="view-analytics" style="display:none;">
+      <div class="topline"><div><h1>Analytics</h1><p class="sub">Everything in one glance.</p></div></div>
+      <div class="row">
+        <div class="card">
+          <h3>Today's task progress</h3>
+          <div class="ring-mini-wrap">
+            <div class="ring-mini">
+              <svg viewBox="0 0 140 140"><circle cx="70" cy="70" r="60" stroke="var(--line)" stroke-width="11" fill="none"/><circle id="taskRingProgress" cx="70" cy="70" r="60" stroke="var(--violet)" stroke-width="11" fill="none" stroke-linecap="round" stroke-dasharray="376.99" stroke-dashoffset="376.99" transform="rotate(-90 70 70)"/></svg>
+              <div class="ring-mini-label"><span id="taskRingPct">0%</span><small>of top 3 done</small></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Habit consistency <span class="tiny">last 7 days</span></h3>
+          <div id="habitBars"></div>
+          <p class="empty" id="habitBarsEmpty">Add habits to see this.</p>
+        </div>
+        <div class="card">
+          <h3>Mood trend <span class="tiny">last 7 entries</span></h3>
+          <div id="moodTrend"></div>
+          <p class="empty" id="moodTrendEmpty">Log a reflection to see this.</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="card">
+          <h3>Budget overview</h3>
+          <div id="analyticsBudget"></div>
+          <p class="empty" id="analyticsBudgetEmpty">Add budget categories to see this.</p>
+        </div>
+        <div class="card">
+          <h3>Savings overview</h3>
+          <div id="analyticsSavings"></div>
+          <p class="empty" id="analyticsSavingsEmpty">Add savings goals to see this.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="view" id="view-settings" style="display:none;">
+      <div class="topline"><div><h1>Settings</h1><p class="sub"></p></div></div>
+      <div class="card">
+        <h3>Theme</h3>
+        <div class="theme-grid" id="themeGrid"></div>
+      </div>
+      <div class="card">
+        <h3>Profile</h3>
+        <p class="sub" style="margin-bottom:12px;">Signed in as <b id="settingsName">—</b></p>
+        <button class="btn ghost" onclick="switchProfile()">🔒 Switch profile</button>
+      </div>
+      <div class="card">
+        <h3>Backup &amp; Restore</h3>
+        <p class="sub" style="margin-bottom:12px;">Your data lives only in this browser. Download a backup file regularly, or before switching devices/browsers — restore it anytime to get everything back exactly as it was.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn" onclick="downloadBackup()">🔒 Download backup</button>
+          <button class="btn ghost" onclick="restoreClick()">🔒 Restore from backup</button>
+          <input type="file" id="restoreFileInput" accept="application/json,.json" style="display:none;" onchange="handleRestoreFile(event)">
+        </div>
+        <p id="backupStatus" class="sub" style="margin-top:10px;min-height:16px;"></p>
+      </div>
+      <div class="card">
+        <h3>Data</h3>
+        <p class="sub" style="margin-bottom:12px;">Clearing your data removes tasks, goals, habits, budget, notes — everything. Consider downloading a backup first.</p>
+        <button class="btn ghost" onclick="askResetAll()" style="color:#E0526B;border-color:#E0526B;">🔒 Reset all data</button>
+      </div>
+    </div>
+
+    <!-- HELP / HOW TO USE -->
+    <div class="view" id="view-help" style="display:none;">
+      <div class="topline"><div><h1>How to Use</h1><p class="sub">Everything you need to set up and get the most out of Adhd Planner. Tap any section to expand it.</p></div></div>
+
+      <div class="help-intro">
+        👋 <b>New here?</b> Start with <b>Getting Started</b> below, then explore each tab in the sidebar in whatever order feels useful. Nothing here is required — Adhd Planner adapts to however you want to use it.
+      </div>
+
+      <input type="text" class="help-search" id="helpSearch" placeholder="🔍 Search for a feature (e.g. 'streak', 'backup', 'theme')..." oninput="filterHelp(this.value)">
+
+      <details class="help-item" open>
+        <summary>🚀 Getting Started <span class="chev">▸</span></summary>
+        <div class="help-body">
+          The first time you open Adhd Planner, it will ask for your <b>name</b> — this is just a local profile so the app can greet you by name. It is <b>not</b> a cloud account: no email, no password, no server.
+          <ul>
+            <li>All your data (tasks, goals, habits, budget, notes, moods, calendar) is saved only in <b>this browser, on this device</b>, using your browser's local storage.</li>
+            <li>Nothing is uploaded anywhere — Adhd Planner works even without an internet connection (after the first load).</li>
+            <li>Your data stays saved between sessions automatically. Close the tab, shut down your device, come back next week — everything will still be there.</li>
+            <li>To use Adhd Planner on a different device or browser, use <b>Backup &amp; Restore</b> in Settings (see below) to move your data over.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="help-item">
+        <summary>🔋 Brain Battery <span class="help-tag">Home</span> <span class="chev">▸</span></summary>
+        <div class="help-body">
+          A quick daily energy check-in, found at the top of the <b>Home</b> tab.
+          <ul>
+            <li>Tap <b>Low</b>, <b>Medium</b>, or <b>High</b> each morning based on how much capacity you actually have that day.</li>
+            <li>Adhd Planner shows you a short, realistic note based on your choice — no guilt-tripping, just honest pacing advice.</li>
+            <li>It automatically resets every day, so you check in fresh each morning.</li>
+            <li>This doesn't lock any features — it's just a mindset tool to help you plan realistically instead of overcommitting.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="help-item">
+        <summary>☑ Tasks <span class="chev">▸</span></summary>
+        <div class="help-body">
+          <ul>
+            <li>Type a task and pick a priority (<b>High / Medium / Low</b>), then tap <b>Add</b>.</li>
+            <li>Tap the <b>★ star</b> icon on up to <b>3 tasks</b> to pin them as "Today's Plan" — they'll also show up on your Home dashboard. The 3-task limit is intentional, to keep each day realistic.</li>
+            <li>Tap directly on a task's text to rename it — it becomes editable right there.</li>
+            <li>Tap the checkbox to mark a task done (it moves to the bottom, crossed out).</li>
+            <li>Tap <b>✕</b> to delete a task permanently.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="help-item">
+        <summary>◎ Goals <span class="chev">▸</span></summary>
+        <div class="help-body">
+          For bigger, ongoing goals that aren't a single task — anything you're working toward over time.
+          <ul>
+            <li>Add a goal name, a <b>target number</b>, and an optional <b>unit</b> (e.g. "books", "kg", "sessions", "$").</li>
+            <li>Use the <b>+</b> and <b>−</b> buttons to update your progress whenever you make headway.</li>
+            <li>The progress bar and percentage update automatically.</li>
+            <li>Tap a goal's name to rename it, or <b>✕</b> to remove it.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="help-item">
+        <summary>↻ Habits <span class="chev">▸</span></summary>
+        <div class="help-body">
+          <ul>
+            <li>Add any habit you want to track daily (e.g. "Drink water", "Take meds", "Stretch").</li>
+            <li>Tap the circle each day you complete it. Your <b>streak</b> (consecutive days) is shown next to each habit.</li>
+            <li><b>Streaks are real</b> — if you miss a day, the streak resets. It's not just a total count, so it reflects genuine consistency.</li>
+            <li>There's no limit on how long a streak can run.</li>
+            <li>See your last 7 days of consistency for every habit as a bar chart on the <b>Analytics</b> tab.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="help-item">
+        <summary>$ Budget, Debt &amp; Savings <span class="chev">▸</span></summary>
+        <div class="help-body">
+          <b>Budget Tracker</b>
+          <ul>
+            <li>Add a category (e.g. "Groceries") with a budgeted amount.</li>
+            <li>Use <b>+</b> / <b>−</b> to log spending as it happens. The bar turns yellow near your limit, red if you go over.</li>
+          </ul>
+          <b>Debt Payoff Calculator</b>
+          <ul>
+            <li>Add each debt with its balance, APR (interest rate), and minimum payment.</li>
+            <li>Choose a strategy: <b>Avalanche</b> (pay off highest interest rate first — saves the most money) or <b>Snowball</b> (pay off smallest balance first — quicker wins for motivation).</li>
+            <li>Enter any <b>extra monthly amount</b> you can put toward debt beyond the minimums — Adhd Planner calculates a realistic payoff timeline and estimated total interest.</li>
+          </ul>
+          <b>Savings Goals</b>
+          <ul>
+            <li>Add a goal name and target amount (e.g. "Emergency Fund — $2,000").</li>
+            <li>Use <b>+</b> / <b>−</b> to log savings as you set money aside — the ring fills up as you get closer.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="help-item">
+        <summary>▦ Planner (Calendar) <span class="chev">▸</span></summary>
+        <div class="help-body">
+          <ul>
+            <li>Toggle between <b>Monthly</b> and <b>Weekly</b> views at the top.</li>
+            <li><b>Monthly view:</b> tap any day to add an event. Colored dots show what's scheduled that day, categorized by Work / Personal / Health / Finance / Other.</li>
+            <li><b>Weekly view:</b> tap any hour slot on any day to add a timed event — this creates a visual time-block on your calendar.</li>
+            <li>Mark an event as a <b>Bill</b> when adding it — it'll automatically appear in the "Upcoming bills" list at the top of the Planner tab as a reminder.</li>
+            <li>Tap any event block to delete it.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="help-item">
+        <summary>✎ Brain Dump <span class="chev">▸</span></summary>
+        <div class="help-body">
+          A no-structure space for whatever's in your head right now.
+          <ul>
+            <li>Tap <b>+ New sticky note</b> to add one, then just start typing — it saves automatically as you type.</li>
+            <li>No folders, no categories, no setup — built for the moment you need to write something down immediately.</li>
+            <li>Tap <b>✕</b> on a note to delete it.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="help-item">
+        <summary>☺ Reflection <span class="chev">▸</span></summary>
+        <div class="help-body">
+          <ul>
+            <li>Pick an emoji that matches your mood, optionally add a one-line note, then tap <b>Log it</b>.</li>
+            <li>Past entries are listed below — tap any entry's text to edit it, or <b>✕</b> to delete it.</li>
+            <li>Your last 7 entries appear as a mood trend chart on the <b>Analytics</b> tab, so you can spot patterns over time.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="help-item">
+        <summary>◧ Analytics <span class="chev">▸</span></summary>
+        <div class="help-body">
+          A one-glance overview pulling together everything you've logged:
+          <ul>
+            <li>Today's task completion ring (based on your starred top 3)</li>
+            <li>7-day habit consistency bars for every habit</li>
+            <li>7-entry mood trend chart</li>
+            <li>Budget overview (spent vs. budgeted per category)</li>
+            <li>Savings goals overview</li>
+          </ul>
+          Everything here updates automatically — there's nothing to build or maintain manually.
+        </div>
+      </details>
+
+      <details class="help-item">
+        <summary>⚙ Settings <span class="chev">▸</span></summary>
+        <div class="help-body">
+          <b>Theme</b> — choose from 6 color themes (including a Dark Mode). Tap any swatch to apply it instantly; your choice is remembered.<br><br>
+          <b>Profile</b> — "Switch profile" clears just your display name (not your data) so someone else's name can be entered.<br><br>
+          <b>Backup &amp; Restore</b> — this is the most important one if you use Adhd Planner on more than one device:
+          <ul>
+            <li>Tap <b>⬇ Download backup</b> to save a `.json` file containing everything — tasks, goals, habits, budget, calendar, notes, moods.</li>
+            <li>To bring that data into Adhd Planner on another browser or device, open Adhd Planner there and tap <b>⬆ Restore from backup</b>, then select the file.</li>
+            <li>Do this regularly, or any time before clearing your browser data, switching browsers, or getting a new device.</li>
+          </ul>
+          <b>Data</b> — "Reset all data" permanently erases everything on this device. Download a backup first if there's any chance you'll want it back.
+        </div>
+      </details>
+
+      <details class="help-item">
+        <summary>💡 Tips for staying consistent <span class="chev">▸</span></summary>
+        <div class="help-body">
+          <ul>
+            <li>Check in with your <b>Brain Battery</b> before anything else each day — it makes the rest of your planning more realistic.</li>
+            <li>Only star <b>3 tasks</b> at a time. Resist the urge to star more — the limit is the feature.</li>
+            <li>If a habit streak breaks, just start again the next day. The streak logic is honest on purpose — it's not meant to be a source of guilt.</li>
+            <li>Use <b>Brain Dump</b> the moment a thought interrupts you, so you don't lose it and don't have to hold it in your head.</li>
+            <li>Download a <b>backup</b> once a week or so — it takes 5 seconds and protects months of data.</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ================= STATE ================= */
+let state = {
+  battery:null, batteryDate:null,
+  tasks:[], goals:[], habits:[], notes:[], moods:[],
+  budgetCats:[], debts:[], debtStrategy:'avalanche', debtExtra:0,
+  savingsGoals:[], events:[],
+  focusSessionsDate:null, focusSessions:0
+};
+let user = { name:'' };
+const STORAGE_KEY='adhd-planner-data', USER_KEY='adhd-planner-user', THEME_KEY='adhd-planner-theme';
+/* ===== DEMO MODE ===== */
+const DEMO_MODE = true;      // demo build: sample data, nothing saved, entries capped
+const DEMO_LIMIT = 4;        // how many new entries a visitor may add
+const DEMO_BUY_URL = 'https://www.etsy.com/shop/PARACreativeStudio'; // <-- replace with your listing link
+const __demo = (function(){
+  let adds = 0;
+  function left(){ const l = Math.max(0, DEMO_LIMIT - adds); return l ? (l + ' of ' + DEMO_LIMIT + ' demo entries left') : 'demo entry limit reached'; }
+  function refresh(){ const el = document.getElementById('demoLeft'); if(el) el.textContent = left(); }
+  function upsell(msg){
+    closeQuickAdd(); closeConfirm();
+    document.getElementById('demoMsg').textContent = msg;
+    document.getElementById('demoOverlay').style.display = 'flex';
+  }
+  function gate(){
+    if(adds >= DEMO_LIMIT){ upsell('You have used all ' + DEMO_LIMIT + ' demo entries. The full version has unlimited entries.'); return false; }
+    return true;
+  }
+  function count(){ adds++; refresh(); }
+  return Object.freeze({ gate, count, upsell, refresh });
+})();
+function buildDemoState(){
+  let n = 1000; const id = () => ++n;
+  const day = (k) => { const x = new Date(); x.setDate(x.getDate() + k); return x.toISOString().slice(0,10); };
+  const lbl = (k) => { const x = new Date(); x.setDate(x.getDate() + k); return x.toLocaleDateString(undefined,{month:'short',day:'numeric'}); };
+  return {
+    battery:'mid', batteryDate:todayStr(),
+    tasks:[
+      {id:id(),text:'Reply to the landlord about the lease',priority:'high',done:false,starred:true},
+      {id:id(),text:'Book dentist appointment',priority:'high',done:false,starred:true},
+      {id:id(),text:'Pay electricity bill',priority:'mid',done:false,starred:true},
+      {id:id(),text:'Put laundry in the dryer',priority:'low',done:true,starred:false},
+      {id:id(),text:'Reply to Sara about the project brief',priority:'mid',done:true,starred:false},
+      {id:id(),text:'Buy a birthday card for Mum',priority:'mid',done:false,starred:false},
+      {id:id(),text:'Clear 10 emails from the inbox',priority:'low',done:false,starred:false}
+    ],
+    goals:[
+      {id:id(),name:'Read 12 books this year',target:12,current:5,unit:'books'},
+      {id:id(),name:'Walk 100 km',target:100,current:42,unit:'km'},
+      {id:id(),name:'Declutter the flat',target:10,current:3,unit:'rooms'}
+    ],
+    habits:[
+      {id:id(),name:'Drink water first thing',doneDates:[day(-6),day(-5),day(-4),day(-3),day(-2),day(-1),day(0)]},
+      {id:id(),name:'10-minute walk',doneDates:[day(-5),day(-4),day(-2),day(-1)]},
+      {id:id(),name:'Take vitamins',doneDates:[day(-3),day(-2),day(-1),day(0)]},
+      {id:id(),name:'Tidy desk before bed',doneDates:[day(-4),day(-1)]}
+    ],
+    notes:[
+      {id:id(),text:'Ideas to try:\n- body doubling on video call\n- phone in another room during focus time'},
+      {id:id(),text:'Groceries: eggs, rice, spinach, yoghurt, lemons'},
+      {id:id(),text:'Remember to ask about extra shifts on Friday'}
+    ],
+    moods:[
+      {id:id(),emoji:'🙂',text:'Got the dishes done before noon.',date:lbl(0)},
+      {id:id(),emoji:'😄',text:'Great walk and a good call with a friend.',date:lbl(-1)},
+      {id:id(),emoji:'😐',text:'Slow start, but I finished one big task.',date:lbl(-2)},
+      {id:id(),emoji:'🤯',text:'Too many tabs open. Took a break and it helped.',date:lbl(-3)},
+      {id:id(),emoji:'🙂',text:'Stuck to my routine for most of the day.',date:lbl(-4)}
+    ],
+    budgetCats:[
+      {id:id(),name:'Groceries',budgeted:400,spent:265},
+      {id:id(),name:'Transport',budgeted:120,spent:78},
+      {id:id(),name:'Fun',budgeted:150,spent:164},
+      {id:id(),name:'Subscriptions',budgeted:60,spent:45}
+    ],
+    debts:[
+      {id:id(),name:'Credit card',balance:1800,rate:19.9,minPayment:60},
+      {id:id(),name:'Phone installments',balance:420,rate:0,minPayment:35},
+      {id:id(),name:'Student loan',balance:5200,rate:4.5,minPayment:80}
+    ],
+    debtStrategy:'avalanche', debtExtra:75,
+    savingsGoals:[
+      {id:id(),name:'Emergency fund',target:1000,saved:640},
+      {id:id(),name:'New headphones',target:200,saved:90}
+    ],
+    events:[
+      {id:id(),title:'Team stand-up',date:day(0),category:'work',start:9,durationHrs:0.5,isBill:false},
+      {id:id(),title:'Deep work block',date:day(0),category:'work',start:10,durationHrs:2,isBill:false},
+      {id:id(),title:'Walk in the park',date:day(0),category:'health',start:17,durationHrs:1,isBill:false},
+      {id:id(),title:'Dentist',date:day(1),category:'health',start:14,durationHrs:1,isBill:false},
+      {id:id(),title:'Electricity bill due',date:day(2),category:'finance',start:null,durationHrs:1,isBill:true},
+      {id:id(),title:'Coffee with Sara',date:day(3),category:'personal',start:11,durationHrs:1.5,isBill:false},
+      {id:id(),title:'Rent due',date:day(5),category:'finance',start:null,durationHrs:1,isBill:true}
+    ],
+    focusSessionsDate:todayStr(), focusSessions:2
+  };
+}
+const THEMES = [
+  {id:'bubblegum', name:'Bubblegum', colors:['#F2678C','#F0B429','#5EC0DE']},
+  {id:'pink', name:'Pink Dream', colors:['#FF6FA5','#FFB86B','#4ECDC4']},
+  {id:'peach', name:'Peach Glow', colors:['#FF8A5B','#FFC94A','#6FBF8B']},
+  {id:'mint', name:'Mint Fresh', colors:['#2FBF8F','#FFC857','#4FA8D8']},
+  {id:'ocean', name:'Ocean Blue', colors:['#2E86DE','#FFB648','#37B7A6']},
+  {id:'dark', name:'Dark Mode', colors:['#B18CE8','#F0B429','#6FD3B0']},
+];
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s??''; return d.innerHTML; }
+function uid(){ return Date.now()+Math.floor(Math.random()*1000); }
+
+function loadData(){
+  if(DEMO_MODE){ state = Object.assign(state, buildDemoState()); }
+  else { try{ const raw=localStorage.getItem(STORAGE_KEY); if(raw) state=Object.assign(state, JSON.parse(raw)); }catch(e){} }
+  if(state.batteryDate!==todayStr()){ state.battery=null; state.batteryDate=todayStr(); }
+  if(state.focusSessionsDate!==todayStr()){ state.focusSessions=0; state.focusSessionsDate=todayStr(); }
+}
+function saveData(){ if(DEMO_MODE) return; try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
+function loadUser(){ if(DEMO_MODE){ user={name:'Alex'}; return; } try{ const raw=localStorage.getItem(USER_KEY); if(raw) user=JSON.parse(raw); }catch(e){} }
+function saveUser(){ if(DEMO_MODE) return; try{ localStorage.setItem(USER_KEY, JSON.stringify(user)); }catch(e){} }
+
+/* ================= AUTH ================= */
+function checkAuth(){
+  loadUser();
+  if(!user.name){ document.getElementById('authOverlay').style.display='flex'; }
+  else { document.getElementById('sidebarName').textContent=user.name; document.getElementById('settingsName').textContent=user.name; }
+}
+function signIn(){
+  const val=document.getElementById('authName').value.trim(); if(!val) return;
+  user={name:val}; saveUser();
+  document.getElementById('authOverlay').style.display='none';
+  document.getElementById('sidebarName').textContent=user.name;
+  document.getElementById('settingsName').textContent=user.name;
+  setGreeting();
+}
+document.getElementById('authName').addEventListener('keydown', e=>{ if(e.key==='Enter') signIn(); });
+function switchProfile(){
+  if(DEMO_MODE){ __demo.upsell('Profiles are part of the full version, where the planner is your own.'); return; }
+  localStorage.removeItem(USER_KEY); user={name:''};
+  document.getElementById('sidebarName').textContent='—';
+  document.getElementById('authName').value='';
+  document.getElementById('authOverlay').style.display='flex';
+}
+
+/* ================= CONFIRM MODAL ================= */
+function askConfirm(msg, onYes){
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmOverlay').style.display='flex';
+  const btn = document.getElementById('confirmYesBtn');
+  btn.onclick = ()=>{ document.getElementById('confirmOverlay').style.display='none'; onYes(); };
+}
+function closeConfirm(){ document.getElementById('confirmOverlay').style.display='none'; }
+function askResetAll(){
+  if(DEMO_MODE){ __demo.upsell('Reset is part of the full version, where the data is your own.'); return; }
+  askConfirm('This will permanently delete everything — tasks, goals, habits, budget, notes, moods. This cannot be undone. Continue?', ()=>{
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  });
+}
+
+/* ================= BACKUP & RESTORE ================= */
+function showBackupStatus(msg, isError){
+  const el=document.getElementById('backupStatus');
+  if(!el) return;
+  el.textContent=msg;
+  el.style.color = isError ? '#E0526B' : 'var(--muted)';
+}
+function downloadBackup(){
+  if(DEMO_MODE){ __demo.upsell('Backup download is part of the full version.'); return; }
+  const payload = { app:'adhd-planner', version:1, exportedAt:new Date().toISOString(), user, state };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'adhd-planner-backup-'+todayStr()+'.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showBackupStatus('Backup downloaded ✓ — keep this file somewhere safe.', false);
+}
+function restoreClick(){
+  if(DEMO_MODE){ __demo.upsell('Restoring a backup is part of the full version.'); return; }
+  document.getElementById('restoreFileInput').click();
+}
+function handleRestoreFile(event){
+  if(DEMO_MODE) return;
+  const file = event.target.files[0];
+  event.target.value = ''; // reset so selecting the same file again still fires change
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    let payload;
+    try{ payload = JSON.parse(e.target.result); }
+    catch(err){ showBackupStatus('That file isn\'t a valid backup (couldn\'t read it as JSON).', true); return; }
+    if(!payload || typeof payload!=='object' || !payload.state || typeof payload.state!=='object'){
+      showBackupStatus('That file doesn\'t look like an Adhd Planner backup.', true);
+      return;
+    }
+    askConfirm('This will replace ALL your current data with this backup (from '+(payload.exportedAt? new Date(payload.exportedAt).toLocaleString() : 'an unknown date')+'). Continue?', ()=>{
+      state = Object.assign({}, state, payload.state);
+      saveData();
+      if(payload.user && payload.user.name){ user = payload.user; saveUser(); }
+      showBackupStatus('Restored ✓ — reloading...', false);
+      setTimeout(()=>location.reload(), 600);
+    });
+  };
+  reader.onerror = ()=> showBackupStatus('Could not read that file — please try again.', true);
+  reader.readAsText(file);
+}
+
+/* ================= THEME ================= */
+function loadTheme(){
+  let t='bubblegum'; try{ t=localStorage.getItem(THEME_KEY)||'bubblegum'; }catch(e){}
+  document.body.setAttribute('data-theme', t);
+}
+function setTheme(id){
+  document.body.setAttribute('data-theme', id);
+  try{ localStorage.setItem(THEME_KEY, id); }catch(e){}
+  renderThemeGrid();
+}
+function renderThemeGrid(){
+  const current = document.body.getAttribute('data-theme');
+  const grid = document.getElementById('themeGrid'); grid.innerHTML='';
+  THEMES.forEach(t=>{
+    const el = document.createElement('div'); el.className='theme-swatch'+(t.id===current?' sel':'');
+    el.innerHTML = `<div class="preview">${t.colors.map(c=>`<i style="background:${c}"></i>`).join('')}</div><div class="lbl">${t.name}</div>`;
+    el.addEventListener('click', ()=>setTheme(t.id));
+    grid.appendChild(el);
+  });
+}
+
+/* ================= HELP SEARCH ================= */
+function filterHelp(query){
+  const q = query.trim().toLowerCase();
+  document.querySelectorAll('#view-help details.help-item').forEach(item=>{
+    const text = item.textContent.toLowerCase();
+    const match = !q || text.includes(q);
+    item.classList.toggle('hidden', !match);
+    if(q && match) item.open = true;
+    if(!q) item.open = item.hasAttribute('data-default-open');
+  });
+}
+// remember which section(s) were open by default so clearing the search restores that state
+document.querySelectorAll('#view-help details.help-item[open]').forEach(d=>d.setAttribute('data-default-open',''));
+
+/* ================= MOBILE NAV DRAWER ================= */
+function toggleMobileNav(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('navBackdrop').classList.toggle('open');
+}
+function closeMobileNav(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('navBackdrop').classList.remove('open');
+}
+
+/* ================= NAV ================= */
+document.querySelectorAll('.navbtn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.style.display='none');
+    document.getElementById('view-'+btn.dataset.view).style.display='block';
+    if(btn.dataset.view==='analytics') renderAnalytics();
+    if(btn.dataset.view==='settings') renderThemeGrid();
+    if(btn.dataset.view==='planner') renderCalendar();
+    closeMobileNav();
+  });
+});
+
+/* ================= GREETING / DATE ================= */
+function setGreeting(){
+  const h=new Date().getHours();
+  const g=h<12?'Good morning':h<17?'Good afternoon':h<21?'Good evening':'Good night';
+  document.getElementById('greeting').textContent = g+(user.name?', '+user.name:'')+' 👋';
+  document.getElementById('todaydate').textContent = new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+}
+function checkDayRollover(){
+  if(state.batteryDate!==todayStr()){ state.battery=null; state.batteryDate=todayStr(); saveData(); renderBattery(); }
+  if(state.focusSessionsDate!==todayStr()){ state.focusSessions=0; state.focusSessionsDate=todayStr(); saveData(); document.getElementById('sessionCount').textContent=state.focusSessions+' sessions today'; }
+  setGreeting();
+}
+setInterval(checkDayRollover, 30000);
+
+/* ================= BRAIN BATTERY ================= */
+const batteryNotes={low:"Low battery today — that's fine. Aim for 1 small win, not 5.",mid:"Medium battery — a solid, realistic day. Protect your energy between tasks.",high:"High battery — good day to tackle the thing you've been avoiding. Still cap it at 3."};
+function renderBattery(){
+  document.querySelectorAll('.bopt').forEach(o=>o.classList.toggle('sel', o.dataset.lvl===state.battery));
+  document.getElementById('batteryNote').textContent = state.battery ? batteryNotes[state.battery] : "Pick one — it just helps you plan realistically.";
+}
+document.getElementById('batteryOpts').addEventListener('click', e=>{
+  const o=e.target.closest('.bopt'); if(!o) return;
+  state.battery=o.dataset.lvl; state.batteryDate=todayStr(); saveData(); renderBattery();
+});
+
+/* ================= AFFIRMATIONS ================= */
+const AFFIRMATIONS=[
+  ["Progress, not perfection.","Small steps still count."],
+  ["You showed up today.","That's the whole game."],
+  ["Rest is productive too.","Your brain needs it to keep going."],
+  ["One task at a time.","You don't have to fix everything today."],
+  ["Done is better than perfect.","Especially on the hard days."],
+  ["Be as kind to yourself","as you'd be to a friend."]
+];
+function renderAffirmation(){
+  const idx = new Date().getDate() % AFFIRMATIONS.length;
+  document.getElementById('affirmLine').textContent = AFFIRMATIONS[idx][0];
+  document.getElementById('affirmSub').textContent = AFFIRMATIONS[idx][1];
+}
+
+/* ================= TASKS ================= */
+function addTask(){
+  const inp=document.getElementById('taskInput'); const val=inp.value.trim(); if(!val) return;
+  if(!__demo.gate()) return; __demo.count(); state.tasks.push({id:uid(),text:val,priority:document.getElementById('prioritySelect').value,done:false,starred:false});
+  inp.value=''; saveData(); renderTasks(); renderHome();
+}
+document.getElementById('taskInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addTask(); });
+function toggleTask(id){ const t=state.tasks.find(t=>t.id===id); if(!t) return; t.done=!t.done; saveData(); renderTasks(); renderHome(); }
+function toggleStar(id){
+  const t=state.tasks.find(t=>t.id===id); if(!t) return;
+  const starredCount=state.tasks.filter(x=>x.starred).length;
+  if(!t.starred && starredCount>=3) return;
+  t.starred=!t.starred; saveData(); renderTasks(); renderHome();
+}
+function deleteTask(id){ state.tasks=state.tasks.filter(t=>t.id!==id); saveData(); renderTasks(); renderHome(); }
+function editTaskText(id, txt){ const t=state.tasks.find(t=>t.id===id); if(t){ t.text=txt.trim()||t.text; saveData(); } }
+function renderTasks(){
+  const list=document.getElementById('taskList'); const sorted=[...state.tasks].sort((a,b)=>a.done-b.done); list.innerHTML='';
+  sorted.forEach(t=>{
+    const row=document.createElement('div'); row.className='task';
+    row.innerHTML=`<div class="check ${t.done?'done':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div>
+      <div class="task-text ${t.done?'done':''}" contenteditable="true">${escapeHtml(t.text)}</div>
+      <span class="tag p-${t.priority}">${t.priority==='high'?'High':t.priority==='mid'?'Medium':'Low'}</span>
+      <button class="iconbtn" onclick="toggleStar(${t.id})" style="color:${t.starred?'#FF8B6A':'var(--muted)'}">★</button>
+      <button class="iconbtn del" onclick="deleteTask(${t.id})">✕</button>`;
+    const ed=row.querySelector('.task-text');
+    ed.addEventListener('blur', ()=>editTaskText(t.id, ed.textContent));
+    ed.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); ed.blur(); } });
+    list.appendChild(row);
+  });
+  document.getElementById('taskEmpty').style.display = state.tasks.length? 'none':'block';
+}
+
+/* ================= GOALS ================= */
+function addGoal(){
+  const name=document.getElementById('goalInput').value.trim(); if(!name) return;
+  const target=parseFloat(document.getElementById('goalTarget').value)||1;
+  const unit=document.getElementById('goalUnit').value.trim()||'';
+  if(!__demo.gate()) return; __demo.count(); state.goals.push({id:uid(),name,target,current:0,unit});
+  document.getElementById('goalInput').value=''; document.getElementById('goalTarget').value=''; document.getElementById('goalUnit').value='';
+  saveData(); renderGoals(); renderHome();
+}
+function bumpGoal(id, delta){
+  const g=state.goals.find(g=>g.id===id); if(!g) return;
+  g.current=Math.max(0, Math.min(g.target, g.current+delta)); saveData(); renderGoals(); renderHome();
+}
+function deleteGoal(id){ state.goals=state.goals.filter(g=>g.id!==id); saveData(); renderGoals(); renderHome(); }
+function editGoalName(id, txt){ const g=state.goals.find(g=>g.id===id); if(g){ g.name=txt.trim()||g.name; saveData(); } }
+function renderGoals(){
+  const list=document.getElementById('goalList'); list.innerHTML='';
+  state.goals.forEach(g=>{
+    const pct=Math.round((g.current/g.target)*100);
+    const row=document.createElement('div'); row.className='goal';
+    row.innerHTML=`<div class="goal-name" contenteditable="true">${escapeHtml(g.name)}</div>
+      <button class="iconbtn" onclick="bumpGoal(${g.id},-1)">−</button>
+      <div class="goal-meta">${g.current}/${g.target} ${escapeHtml(g.unit)}</div>
+      <button class="iconbtn" onclick="bumpGoal(${g.id},1)">+</button>
+      <div class="pbar-track" style="max-width:100px;"><div class="pbar-fill" style="width:${Math.min(100,pct)}%"></div></div>
+      <span class="tag p-mid">${pct}%</span>
+      <button class="iconbtn del" onclick="deleteGoal(${g.id})">✕</button>`;
+    const ed=row.querySelector('.goal-name');
+    ed.addEventListener('blur', ()=>editGoalName(g.id, ed.textContent));
+    list.appendChild(row);
+  });
+  document.getElementById('goalEmpty').style.display = state.goals.length? 'none':'block';
+}
+
+/* ================= HABITS ================= */
+function addHabit(){
+  const inp=document.getElementById('habitInput'); const val=inp.value.trim(); if(!val) return;
+  if(!__demo.gate()) return; __demo.count(); state.habits.push({id:uid(),name:val,doneDates:[]}); inp.value=''; saveData(); renderHabits(); renderHome();
+}
+document.getElementById('habitInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addHabit(); });
+function toggleHabit(id){
+  const h=state.habits.find(h=>h.id===id); if(!h) return; const t=todayStr(); const idx=h.doneDates.indexOf(t);
+  if(idx>-1) h.doneDates.splice(idx,1); else h.doneDates.push(t);
+  saveData(); renderHabits(); renderHome();
+}
+function getStreak(h){
+  let streak=0; const cursor=new Date();
+  if(!h.doneDates.includes(todayStr())) cursor.setDate(cursor.getDate()-1);
+  while(true){ const key=cursor.toISOString().slice(0,10); if(h.doneDates.includes(key)){ streak++; cursor.setDate(cursor.getDate()-1); } else break; }
+  return streak;
+}
+function deleteHabit(id){ state.habits=state.habits.filter(h=>h.id!==id); saveData(); renderHabits(); renderHome(); }
+function editHabitName(id, txt){ const h=state.habits.find(h=>h.id===id); if(h){ h.name=txt.trim()||h.name; saveData(); } }
+function renderHabits(){
+  const t=todayStr(); const list=document.getElementById('habitList'); list.innerHTML='';
+  state.habits.forEach(h=>{
+    const done=h.doneDates.includes(t);
+    const row=document.createElement('div'); row.className='habit';
+    row.innerHTML=`<div class="habit-dot ${done?'done':''}" onclick="toggleHabit(${h.id})">${done?'✓':''}</div>
+      <div class="habit-name" contenteditable="true">${escapeHtml(h.name)}</div>
+      <div class="streak">${getStreak(h)} day streak</div>
+      <button class="iconbtn del" onclick="deleteHabit(${h.id})">✕</button>`;
+    const ed=row.querySelector('.habit-name'); ed.addEventListener('blur', ()=>editHabitName(h.id, ed.textContent));
+    list.appendChild(row);
+  });
+  document.getElementById('habitEmpty').style.display=state.habits.length?'none':'block';
+}
+function renderTodayHabits(){
+  const t=todayStr(); const wrap=document.getElementById('todayHabits'); wrap.innerHTML='';
+  if(!state.habits.length){ wrap.innerHTML='<p class="empty">Add habits in the Habits tab.</p>'; return; }
+  state.habits.forEach(h=>{
+    const done=h.doneDates.includes(t);
+    const row=document.createElement('div'); row.className='habit';
+    row.innerHTML=`<div class="habit-dot ${done?'done':''}" onclick="toggleHabit(${h.id})">${done?'✓':''}</div><div class="habit-name">${escapeHtml(h.name)}</div><div class="streak">${getStreak(h)}d</div>`;
+    wrap.appendChild(row);
+  });
+}
+
+/* ================= NOTES ================= */
+function addNote(){ if(!__demo.gate()) return; __demo.count(); state.notes.push({id:uid(),text:''}); saveData(); renderNotes(); }
+function deleteNote(id){ state.notes=state.notes.filter(n=>n.id!==id); saveData(); renderNotes(); }
+function updateNote(id,val){ const n=state.notes.find(n=>n.id===id); if(n){ n.text=val; saveData(); } }
+function renderNotes(){
+  const grid=document.getElementById('notesGrid'); grid.innerHTML='';
+  state.notes.forEach(n=>{
+    const el=document.createElement('div'); el.className='note';
+    el.innerHTML=`<button class="iconbtn del" onclick="deleteNote(${n.id})">✕</button><textarea placeholder="Type here...">${escapeHtml(n.text)}</textarea>`;
+    el.querySelector('textarea').addEventListener('input', e=>updateNote(n.id, e.target.value));
+    grid.appendChild(el);
+  });
+}
+
+/* ================= MOOD ================= */
+let selectedMood=null;
+document.getElementById('moodRow').addEventListener('click', e=>{
+  const o=e.target.closest('.mood-opt'); if(!o) return;
+  document.querySelectorAll('.mood-opt').forEach(x=>x.classList.remove('sel')); o.classList.add('sel'); selectedMood=o.dataset.m;
+});
+function saveMood(){
+  if(!selectedMood) return;
+  const txt=document.getElementById('reflectInput').value.trim();
+  if(!__demo.gate()) return; __demo.count(); state.moods.unshift({id:uid(),emoji:selectedMood,text:txt,date:new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'})});
+  document.getElementById('reflectInput').value=''; selectedMood=null;
+  document.querySelectorAll('.mood-opt').forEach(x=>x.classList.remove('sel'));
+  saveData(); renderMood();
+}
+function deleteMood(id){ state.moods=state.moods.filter(m=>m.id!==id); saveData(); renderMood(); }
+function editMoodText(id, txt){ const m=state.moods.find(m=>m.id===id); if(m){ m.text=txt.trim(); saveData(); } }
+function renderMood(){
+  const log=document.getElementById('moodLog'); log.innerHTML='';
+  state.moods.slice(0,50).forEach(m=>{
+    const row=document.createElement('div'); row.className='mood-entry';
+    row.innerHTML=`<div class="em">${m.emoji}</div><div class="txt" contenteditable="true">${escapeHtml(m.text||'(no note)')}<div class="dt">${m.date}</div></div><button class="iconbtn del" onclick="deleteMood(${m.id})">✕</button>`;
+    const ed=row.querySelector('.txt'); ed.addEventListener('blur', ()=>editMoodText(m.id, ed.childNodes[0]?ed.childNodes[0].textContent:''));
+    log.appendChild(row);
+  });
+  document.getElementById('moodEmpty').style.display=state.moods.length?'none':'block';
+}
+
+/* ================= BUDGET ================= */
+function addBudgetCat(){
+  const name=document.getElementById('budgetCatInput').value.trim(); if(!name) return;
+  const amt=parseFloat(document.getElementById('budgetAmtInput').value)||0;
+  if(!__demo.gate()) return; __demo.count(); state.budgetCats.push({id:uid(),name,budgeted:amt,spent:0});
+  document.getElementById('budgetCatInput').value=''; document.getElementById('budgetAmtInput').value='';
+  saveData(); renderBudget();
+}
+function bumpSpent(id, delta){
+  const c=state.budgetCats.find(c=>c.id===id); if(!c) return;
+  c.spent=Math.max(0, c.spent+delta); saveData(); renderBudget();
+}
+function deleteBudgetCat(id){ state.budgetCats=state.budgetCats.filter(c=>c.id!==id); saveData(); renderBudget(); }
+function renderBudget(){
+  const list=document.getElementById('budgetList'); list.innerHTML='';
+  let totalB=0, totalS=0;
+  state.budgetCats.forEach(c=>{
+    totalB+=c.budgeted; totalS+=c.spent;
+    const pct = c.budgeted>0 ? Math.round((c.spent/c.budgeted)*100) : 0;
+    const cls = pct>100 ? 'over' : pct>85 ? 'warn' : '';
+    const row=document.createElement('div'); row.className='budgetrow';
+    row.innerHTML=`<div class="budget-cat-icon">💰</div><div class="task-text" style="flex:1;">${escapeHtml(c.name)}</div>
+      <button class="iconbtn" onclick="bumpSpent(${c.id},-10)">−</button>
+      <div class="pbar-track"><div class="pbar-fill ${cls}" style="width:${Math.min(100,pct)}%"></div></div>
+      <button class="iconbtn" onclick="bumpSpent(${c.id},10)">+</button>
+      <div class="budget-nums">$${c.spent.toFixed(0)} / $${c.budgeted.toFixed(0)} · ${pct}%</div>
+      <button class="iconbtn del" onclick="deleteBudgetCat(${c.id})">✕</button>`;
+    list.appendChild(row);
+  });
+  document.getElementById('budgetEmpty').style.display = state.budgetCats.length? 'none':'block';
+  const overallPct = totalB>0 ? Math.round((totalS/totalB)*100) : 0;
+  document.getElementById('budgetPctPill').textContent = overallPct+'%';
+  document.getElementById('budgetSummary').innerHTML = `<span>Total spent / budgeted</span><span>$${totalS.toFixed(0)} / $${totalB.toFixed(0)}</span>`;
+}
+
+/* ---- Debt calculator ---- */
+document.getElementById('strategyToggle').addEventListener('click', e=>{
+  const b=e.target.closest('.strategy-btn'); if(!b) return;
+  state.debtStrategy=b.dataset.s; saveData(); renderDebt();
+});
+function addDebt(){
+  const name=document.getElementById('debtName').value.trim(); if(!name) return;
+  const balance=parseFloat(document.getElementById('debtBalance').value)||0;
+  const rate=parseFloat(document.getElementById('debtRate').value)||0;
+  const min=parseFloat(document.getElementById('debtMin').value)||0;
+  if(!__demo.gate()) return; __demo.count(); state.debts.push({id:uid(),name,balance,rate,minPayment:min});
+  ['debtName','debtBalance','debtRate','debtMin'].forEach(id=>document.getElementById(id).value='');
+  saveData(); renderDebt();
+}
+function deleteDebt(id){ state.debts=state.debts.filter(d=>d.id!==id); saveData(); renderDebt(); }
+document.getElementById('debtExtra').addEventListener('input', e=>{ state.debtExtra=parseFloat(e.target.value)||0; saveData(); renderDebt(); });
+function simulatePayoff(debts, strategy, extra){
+  let list = debts.map(d=>({...d}));
+  if(!list.length) return null;
+  list.sort((a,b)=> strategy==='avalanche' ? b.rate-a.rate : a.balance-b.balance);
+  let months=0, totalInterest=0;
+  const totalMinPay = list.reduce((s,d)=>s+d.minPayment,0);
+  let safety=0;
+  while(list.some(d=>d.balance>0.5) && safety<1200){
+    safety++; months++;
+    let pool = extra;
+    list.forEach(d=>{
+      if(d.balance<=0) return;
+      const interest = d.balance*(d.rate/100/12);
+      totalInterest+=interest;
+      d.balance += interest;
+      const pay = Math.min(d.balance, d.minPayment);
+      d.balance -= pay;
+    });
+    for(const d of list){
+      if(pool<=0) break;
+      if(d.balance>0){ const extraPay=Math.min(d.balance, pool); d.balance-=extraPay; pool-=extraPay; }
+    }
+  }
+  return {months, totalInterest, totalMinPay};
+}
+function renderDebt(){
+  document.querySelectorAll('.strategy-btn').forEach(b=>b.classList.toggle('sel', b.dataset.s===state.debtStrategy));
+  document.getElementById('debtExtra').value = state.debtExtra||0;
+  const list=document.getElementById('debtList'); list.innerHTML='';
+  state.debts.forEach(d=>{
+    const row=document.createElement('div'); row.className='debtrow';
+    row.innerHTML=`<div class="debt-name">${escapeHtml(d.name)}</div><div class="debt-info">$${d.balance.toFixed(0)} · ${d.rate}% APR · min $${d.minPayment.toFixed(0)}</div><button class="iconbtn del" onclick="deleteDebt(${d.id})">✕</button>`;
+    list.appendChild(row);
+  });
+  document.getElementById('debtEmpty').style.display = state.debts.length? 'none':'block';
+  const resultWrap = document.getElementById('payoffResult');
+  if(state.debts.length){
+    const res = simulatePayoff(state.debts, state.debtStrategy, state.debtExtra);
+    const years = Math.floor(res.months/12), rem = res.months%12;
+    const timeStr = res.months>=1200 ? '20+ years (add more extra payment)' : (years>0? years+'y '+rem+'m' : res.months+' months');
+    resultWrap.innerHTML = `<div class="payoff-summary">Debt-free in <b>${timeStr}</b> paying $${(res.totalMinPay+state.debtExtra).toFixed(0)}/mo total (${state.debtStrategy}). Estimated interest paid: ~$${res.totalInterest.toFixed(0)}.</div>`;
+  } else resultWrap.innerHTML='';
+}
+
+/* ---- Savings goals ---- */
+function addSavingsGoal(){
+  const name=document.getElementById('savingsName').value.trim(); if(!name) return;
+  const target=parseFloat(document.getElementById('savingsTarget').value)||1;
+  if(!__demo.gate()) return; __demo.count(); state.savingsGoals.push({id:uid(),name,target,saved:0});
+  document.getElementById('savingsName').value=''; document.getElementById('savingsTarget').value='';
+  saveData(); renderSavings();
+}
+function bumpSavings(id,delta){ const s=state.savingsGoals.find(s=>s.id===id); if(!s) return; s.saved=Math.max(0,s.saved+delta); saveData(); renderSavings(); }
+function deleteSavings(id){ state.savingsGoals=state.savingsGoals.filter(s=>s.id!==id); saveData(); renderSavings(); }
+const SAV_CIRC = 2*Math.PI*24;
+function renderSavings(){
+  const list=document.getElementById('savingsList'); list.innerHTML='';
+  state.savingsGoals.forEach(s=>{
+    const pct=Math.min(100, Math.round((s.saved/s.target)*100));
+    const row=document.createElement('div'); row.className='savingsrow';
+    row.innerHTML=`<div class="savings-ring-mini"><svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="24" stroke="var(--line)" stroke-width="6" fill="none"/><circle cx="28" cy="28" r="24" stroke="var(--sage)" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="${SAV_CIRC}" stroke-dashoffset="${SAV_CIRC-(SAV_CIRC*pct/100)}" transform="rotate(-90 28 28)"/></svg><div class="v">${pct}%</div></div>
+      <div class="task-text" style="flex:1;">${escapeHtml(s.name)}<br><span class="sub">$${s.saved.toFixed(0)} of $${s.target.toFixed(0)}</span></div>
+      <button class="iconbtn" onclick="bumpSavings(${s.id},-50)">−</button>
+      <button class="iconbtn" onclick="bumpSavings(${s.id},50)">+</button>
+      <button class="iconbtn del" onclick="deleteSavings(${s.id})">✕</button>`;
+    list.appendChild(row);
+  });
+  document.getElementById('savingsEmpty').style.display = state.savingsGoals.length? 'none':'block';
+}
+
+/* ================= CALENDAR / PLANNER ================= */
+let calMode='month';
+let calDate = new Date();
+function setCalView(mode){
+  calMode=mode;
+  document.getElementById('viewMonthBtn').classList.toggle('sel', mode==='month');
+  document.getElementById('viewWeekBtn').classList.toggle('sel', mode==='week');
+  document.getElementById('monthView').style.display = mode==='month'?'block':'none';
+  document.getElementById('weekView').style.display = mode==='week'?'block':'none';
+  renderCalendar();
+}
+function calPrev(){ if(calMode==='month') calDate.setMonth(calDate.getMonth()-1); else calDate.setDate(calDate.getDate()-7); renderCalendar(); }
+function calNext(){ if(calMode==='month') calDate.setMonth(calDate.getMonth()+1); else calDate.setDate(calDate.getDate()+7); renderCalendar(); }
+function calToday(){ calDate=new Date(); renderCalendar(); }
+
+function addEventQuick(dateKey){
+  openQuickAdd('event', dateKey);
+}
+function deleteEvent(id){ state.events=state.events.filter(e=>e.id!==id); saveData(); renderCalendar(); }
+
+function renderCalendar(){
+  document.getElementById('calLabel').textContent = calMode==='month'
+    ? calDate.toLocaleDateString(undefined,{month:'long',year:'numeric'})
+    : 'Week of '+calDate.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+  renderBills();
+  if(calMode==='month') renderMonthView(); else renderWeekView();
+}
+function renderBills(){
+  const upcoming = state.events.filter(e=>e.isBill && e.date>=todayStr()).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
+  const wrap=document.getElementById('upcomingBillsWrap'); const list=document.getElementById('billsList');
+  if(!upcoming.length){ wrap.style.display='none'; return; }
+  wrap.style.display='block'; list.innerHTML='';
+  upcoming.forEach(e=>{
+    const d = new Date(e.date+'T00:00:00');
+    const row=document.createElement('div'); row.className='bill-item';
+    row.innerHTML = `<span>${escapeHtml(e.title)}</span><b>${d.toLocaleDateString(undefined,{month:'short',day:'numeric'})}</b>`;
+    list.appendChild(row);
+  });
+}
+function renderMonthView(){
+  const wrap=document.getElementById('monthView'); wrap.innerHTML='';
+  const grid=document.createElement('div'); grid.className='month-grid';
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d=>{ const el=document.createElement('div'); el.className='month-dow'; el.textContent=d; grid.appendChild(el); });
+  const year=calDate.getFullYear(), month=calDate.getMonth();
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const daysInPrev=new Date(year,month,0).getDate();
+  const cells=[];
+  for(let i=firstDay-1;i>=0;i--) cells.push({day:daysInPrev-i, other:true, date:new Date(year,month-1,daysInPrev-i)});
+  for(let d=1;d<=daysInMonth;d++) cells.push({day:d, other:false, date:new Date(year,month,d)});
+  while(cells.length%7!==0) cells.push({day:cells.length, other:true, date:new Date(year,month+1,cells.length-firstDay-daysInMonth+1)});
+  const todayKey=todayStr();
+  cells.forEach(c=>{
+    const key = c.date.toISOString().slice(0,10);
+    const dayEvents = state.events.filter(e=>e.date===key);
+    const cell=document.createElement('div'); cell.className='month-cell'+(c.other?' other':'')+(key===todayKey?' today':'');
+    const bill = dayEvents.find(e=>e.isBill);
+    cell.innerHTML = `<div class="dnum">${c.day}</div><div class="month-dots">${dayEvents.slice(0,4).map(e=>`<span class="month-dot cat-${e.category}"></span>`).join('')}</div>${bill?`<div class="bill-chip">${escapeHtml(bill.title)}</div>`:''}`;
+    cell.addEventListener('click', ()=>addEventQuick(key));
+    grid.appendChild(cell);
+  });
+  wrap.appendChild(grid);
+}
+function getWeekStart(d){ const dt=new Date(d); const day=dt.getDay(); dt.setDate(dt.getDate()-day); dt.setHours(0,0,0,0); return dt; }
+function renderWeekView(){
+  const wrap=document.getElementById('weekView'); wrap.innerHTML='';
+  const start=getWeekStart(calDate);
+  const hours=[]; for(let h=7;h<=21;h++) hours.push(h);
+  const grid=document.createElement('div'); grid.className='week-grid';
+  grid.appendChild(document.createElement('div'));
+  const dayKeys=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(start); d.setDate(start.getDate()+i);
+    const key=d.toISOString().slice(0,10); dayKeys.push(key);
+    const head=document.createElement('div'); head.className='week-head'; head.innerHTML=`${d.toLocaleDateString(undefined,{weekday:'short'})}<br>${d.getDate()}`;
+    grid.appendChild(head);
+  }
+  hours.forEach(h=>{
+    const lbl=document.createElement('div'); lbl.className='week-hour-label'; lbl.textContent=(h%12||12)+(h<12?'am':'pm');
+    grid.appendChild(lbl);
+    dayKeys.forEach(key=>{
+      const col=document.createElement('div'); col.className='week-col';
+      const slot=document.createElement('div'); slot.className='week-slot';
+      slot.addEventListener('click', ()=>openQuickAdd('event', key, h));
+      col.appendChild(slot);
+      grid.appendChild(col);
+    });
+  });
+  wrap.appendChild(grid);
+  // overlay events positioned absolutely per day column
+  setTimeout(()=>{
+    dayKeys.forEach((key, i)=>{
+      const evs = state.events.filter(e=>e.date===key && e.start!=null);
+      evs.forEach(e=>{
+        const cols = wrap.querySelectorAll('.week-col');
+        const col = cols[i]; if(!col) return;
+        const el=document.createElement('div'); el.className='week-event cat-'+e.category;
+        const top = (e.start-7)*36, height=(e.durationHrs||1)*36-2;
+        el.style.top=top+'px'; el.style.height=Math.max(20,height)+'px';
+        el.textContent=e.title;
+        el.title = e.title+' — click to delete';
+        el.addEventListener('click', ev=>{ ev.stopPropagation(); askConfirm('Delete "'+e.title+'"?', ()=>deleteEvent(e.id)); });
+        col.style.position='relative';
+        col.appendChild(el);
+      });
+    });
+  },0);
+}
+
+/* ================= QUICK ADD MODAL ================= */
+let qaType=null, qaMeta=null;
+function openQuickAdd(type, meta1, meta2){
+  qaType=type; qaMeta={a:meta1,b:meta2};
+  const fields=document.getElementById('qaFields');
+  const title=document.getElementById('qaTitle');
+  if(type==='task'){
+    title.textContent='New Task';
+    fields.innerHTML=`<input type="text" id="qaText" placeholder="What needs doing?"><select id="qaPriority"><option value="high">High</option><option value="mid" selected>Medium</option><option value="low">Low</option></select>`;
+  } else if(type==='goal'){
+    title.textContent='New Goal';
+    fields.innerHTML=`<input type="text" id="qaText" placeholder="Goal name"><input type="number" id="qaTarget" placeholder="Target #"><input type="text" id="qaUnit" placeholder="unit">`;
+  } else if(type==='expense'){
+    title.textContent='New Expense';
+    fields.innerHTML=`<select id="qaCat">${state.budgetCats.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('')}</select><input type="number" id="qaAmt" placeholder="Amount $">` + (state.budgetCats.length?'':'<p class="sub">Add a budget category first in the Budget tab.</p>');
+  } else if(type==='event'){
+    title.textContent='New Calendar Event';
+    fields.innerHTML=`<input type="text" id="qaText" placeholder="Event title">
+      <input type="date" id="qaDate" value="${meta1||todayStr()}">
+      <select id="qaCat2"><option value="work">Work</option><option value="personal">Personal</option><option value="health">Health</option><option value="finance">Finance</option><option value="other">Other</option></select>
+      <input type="number" id="qaStart" placeholder="Start hour (0-23)" value="${meta2!=null?meta2:9}">
+      <input type="number" id="qaDur" placeholder="Duration (hrs)" value="1">
+      <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);margin-bottom:8px;"><input type="checkbox" id="qaBill" style="width:auto;margin:0;"> This is a bill / due-date reminder</label>`;
+  }
+  document.getElementById('quickAddOverlay').style.display='flex';
+}
+function closeQuickAdd(){ document.getElementById('quickAddOverlay').style.display='none'; }
+function submitQuickAdd(){
+  if(qaType==='task'){
+    const text=document.getElementById('qaText').value.trim(); if(!text) return;
+    if(!__demo.gate()) return; __demo.count(); state.tasks.push({id:uid(),text,priority:document.getElementById('qaPriority').value,done:false,starred:false});
+    renderTasks();
+  } else if(qaType==='goal'){
+    const name=document.getElementById('qaText').value.trim(); if(!name) return;
+    const target=parseFloat(document.getElementById('qaTarget').value)||1;
+    const unit=document.getElementById('qaUnit').value.trim();
+    if(!__demo.gate()) return; __demo.count(); state.goals.push({id:uid(),name,target,current:0,unit});
+    renderGoals();
+  } else if(qaType==='expense'){
+    const catSel=document.getElementById('qaCat'); if(!catSel || !catSel.value) return;
+    if(!__demo.gate()) return; __demo.count(); 
+    const amt=parseFloat(document.getElementById('qaAmt').value)||0;
+    const c=state.budgetCats.find(c=>c.id==catSel.value); if(c){ c.spent+=amt; }
+    renderBudget();
+  } else if(qaType==='event'){
+    const title=document.getElementById('qaText').value.trim(); if(!title) return;
+    const date=document.getElementById('qaDate').value||todayStr();
+    const category=document.getElementById('qaCat2').value;
+    const start=parseFloat(document.getElementById('qaStart').value);
+    const dur=parseFloat(document.getElementById('qaDur').value)||1;
+    const isBill=document.getElementById('qaBill').checked;
+    if(!__demo.gate()) return; __demo.count(); state.events.push({id:uid(),title,date,category,start:isNaN(start)?null:start,durationHrs:dur,isBill});
+    renderCalendar();
+  }
+  saveData(); renderHome(); closeQuickAdd();
+}
+
+/* ================= FOCUS TIMER ================= */
+let timerMinutes=25, timerSeconds=0, timerRunning=false, timerInterval=null, isBreak=false;
+const CIRC=2*Math.PI*66;
+document.getElementById('presets').addEventListener('click', e=>{
+  const p=e.target.closest('.preset'); if(!p||timerRunning) return;
+  document.querySelectorAll('.preset').forEach(x=>x.classList.remove('sel')); p.classList.add('sel');
+  const min=parseInt(p.dataset.min); isBreak=min===5; timerMinutes=min; timerSeconds=0;
+  document.getElementById('timerMode').textContent=isBreak?'BREAK':'FOCUS'; updateTimerDisplay();
+});
+function updateTimerDisplay(){ document.getElementById('timerDisplay').textContent=String(timerMinutes).padStart(2,'0')+':'+String(timerSeconds).padStart(2,'0'); }
+function toggleTimer(){
+  timerRunning=!timerRunning; document.getElementById('startBtn').textContent=timerRunning?'Pause':'Start';
+  if(timerRunning){
+    let total=timerMinutes*60+timerSeconds; const fullTotal=total;
+    timerInterval=setInterval(()=>{
+      total--;
+      if(total<0){
+        clearInterval(timerInterval); timerRunning=false; document.getElementById('startBtn').textContent='Start';
+        if(!isBreak){ state.focusSessions++; state.focusSessionsDate=todayStr(); saveData(); document.getElementById('sessionCount').textContent=state.focusSessions+' sessions today'; }
+        timerMinutes=isBreak?25:5; isBreak=!isBreak; timerSeconds=0;
+        document.getElementById('timerMode').textContent=isBreak?'BREAK':'FOCUS'; updateTimerDisplay();
+        document.getElementById('ringProgress').style.strokeDashoffset=0; return;
+      }
+      timerMinutes=Math.floor(total/60); timerSeconds=total%60; updateTimerDisplay();
+      document.getElementById('ringProgress').style.strokeDashoffset=CIRC*(1-total/fullTotal);
+    },1000);
+  } else clearInterval(timerInterval);
+}
+function resetTimer(){
+  clearInterval(timerInterval); timerRunning=false; document.getElementById('startBtn').textContent='Start';
+  const sel=document.querySelector('.preset.sel'); timerMinutes=sel?parseInt(sel.dataset.min):25; timerSeconds=0;
+  document.getElementById('ringProgress').style.strokeDashoffset=0; updateTimerDisplay();
+}
+
+/* ================= HOME DASHBOARD ================= */
+const RING_CIRC = 2*Math.PI*34;
+function ringSvg(id, pct, color){
+  return `<svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="34" stroke="var(--line)" stroke-width="8" fill="none"/><circle cx="42" cy="42" r="34" stroke="${color}" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="${RING_CIRC}" stroke-dashoffset="${RING_CIRC-(RING_CIRC*Math.min(100,pct)/100)}" transform="rotate(-90 42 42)"/></svg>`;
+}
+function renderDashRings(){
+  const doneTasks=state.tasks.filter(t=>t.done).length, totalTasks=state.tasks.length;
+  const taskPct = totalTasks? Math.round((doneTasks/totalTasks)*100):0;
+  const totalGoalPct = state.goals.length ? Math.round(state.goals.reduce((s,g)=>s+Math.min(100,(g.current/g.target)*100),0)/state.goals.length) : 0;
+  const t=todayStr(); const habitsDone=state.habits.filter(h=>h.doneDates.includes(t)).length, totalHabits=state.habits.length;
+  const habitPct = totalHabits? Math.round((habitsDone/totalHabits)*100):0;
+  const totalB=state.budgetCats.reduce((s,c)=>s+c.budgeted,0), totalS=state.budgetCats.reduce((s,c)=>s+c.spent,0);
+  const budgetPct = totalB? Math.round((totalS/totalB)*100):0;
+
+  const rings=[
+    {label:'Tasks', val:doneTasks+'/'+totalTasks, pct:taskPct, color:'var(--violet)'},
+    {label:'Goals', val:state.goals.length+' goals', pct:totalGoalPct, color:'var(--coral)'},
+    {label:'Habits', val:habitsDone+'/'+totalHabits, pct:habitPct, color:'var(--sage)'},
+    {label:'Budget', val:'$'+totalS.toFixed(0), pct:budgetPct, color: budgetPct>100?'#E0526B':'var(--violet)'},
+  ];
+  const wrap=document.getElementById('dashRings'); wrap.innerHTML='';
+  rings.forEach(r=>{
+    const el=document.createElement('div'); el.className='ring-card';
+    el.innerHTML=`<div class="ring-box">${ringSvg(0,r.pct,r.color)}<div class="val" style="font-size:12px;">${r.val}</div></div><div class="ring-name">${r.label}</div><div class="ring-pct">${r.pct}%</div>`;
+    wrap.appendChild(el);
+  });
+  const longestHabitStreak = state.habits.reduce((m,h)=>Math.max(m,getStreak(h)),0);
+  document.getElementById('homeStreak').textContent = longestHabitStreak;
+}
+function renderTopThree(){
+  const starred=state.tasks.filter(t=>t.starred);
+  const wrap=document.getElementById('topThree'); wrap.innerHTML='';
+  starred.forEach(t=>{
+    const row=document.createElement('div'); row.className='task';
+    row.innerHTML=`<div class="check ${t.done?'done':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div><div class="task-text ${t.done?'done':''}">${escapeHtml(t.text)}</div><span class="tag p-${t.priority}">${t.priority==='high'?'High':t.priority==='mid'?'Medium':'Low'}</span>`;
+    wrap.appendChild(row);
+  });
+  document.getElementById('topCount').textContent=starred.filter(t=>t.done).length+'/'+starred.length;
+  document.getElementById('topEmpty').style.display=starred.length?'none':'block';
+}
+function renderHome(){ renderDashRings(); renderTopThree(); renderTodayHabits(); renderAffirmation(); }
+
+/* ================= ANALYTICS ================= */
+const CIRC_MINI=2*Math.PI*60;
+function renderAnalytics(){
+  const starred=state.tasks.filter(t=>t.starred); const done=starred.filter(t=>t.done).length;
+  const pct=starred.length?Math.round((done/starred.length)*100):0;
+  const ring=document.getElementById('taskRingProgress'); if(ring) ring.style.strokeDashoffset=CIRC_MINI-(CIRC_MINI*pct/100);
+  const pctLabel=document.getElementById('taskRingPct'); if(pctLabel) pctLabel.textContent=pct+'%';
+
+  const barsWrap=document.getElementById('habitBars');
+  barsWrap.innerHTML='';
+  const last7=[]; for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); last7.push(d.toISOString().slice(0,10)); }
+  state.habits.forEach(h=>{
+    const count=last7.filter(d=>h.doneDates.includes(d)).length; const p=Math.round((count/7)*100);
+    const row=document.createElement('div'); row.className='hbar-row';
+    row.innerHTML=`<div class="hbar-label" title="${escapeHtml(h.name)}">${escapeHtml(h.name)}</div><div class="pbar-track"><div class="pbar-fill" style="width:${p}%"></div></div><div class="hbar-frac">${count}/7</div>`;
+    barsWrap.appendChild(row);
+  });
+  document.getElementById('habitBarsEmpty').style.display=state.habits.length?'none':'block';
+
+  const trendWrap=document.getElementById('moodTrend');
+  const moodScore={'😞':1,'😐':2,'🙂':4,'😄':5,'🤯':2.5};
+  const last7moods=state.moods.slice(0,7).slice().reverse();
+  if(last7moods.length){
+    const w=260,h=60,padX=14,padY=10;
+    const stepX=last7moods.length>1?(w-padX*2)/(last7moods.length-1):0;
+    const pts=last7moods.map((m,i)=>{ const score=moodScore[m.emoji]??3; const x=padX+stepX*i; const y=h-padY-((score-1)/4)*(h-padY*2); return {x,y}; });
+    const pathD=pts.map((p,i)=>(i===0?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+    const dots=pts.map(p=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="var(--violet)"/>`).join('');
+    trendWrap.innerHTML=`<svg class="mood-trend-svg" viewBox="0 0 ${w} ${h}"><path d="${pathD}" fill="none" stroke="var(--violet)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}</svg><div class="mood-trend-legend">${last7moods.map(m=>`<span>${m.emoji}</span>`).join('')}</div>`;
+  } else trendWrap.innerHTML='';
+  document.getElementById('moodTrendEmpty').style.display=last7moods.length?'none':'block';
+
+  const abWrap=document.getElementById('analyticsBudget'); abWrap.innerHTML='';
+  state.budgetCats.forEach(c=>{
+    const p=c.budgeted?Math.round((c.spent/c.budgeted)*100):0;
+    const row=document.createElement('div'); row.className='hbar-row';
+    row.innerHTML=`<div class="hbar-label">${escapeHtml(c.name)}</div><div class="pbar-track"><div class="pbar-fill ${p>100?'over':p>85?'warn':''}" style="width:${Math.min(100,p)}%"></div></div><div class="hbar-frac">${p}%</div>`;
+    abWrap.appendChild(row);
+  });
+  document.getElementById('analyticsBudgetEmpty').style.display=state.budgetCats.length?'none':'block';
+
+  const asWrap=document.getElementById('analyticsSavings'); asWrap.innerHTML='';
+  state.savingsGoals.forEach(s=>{
+    const p=s.target?Math.round((s.saved/s.target)*100):0;
+    const row=document.createElement('div'); row.className='hbar-row';
+    row.innerHTML=`<div class="hbar-label">${escapeHtml(s.name)}</div><div class="pbar-track"><div class="pbar-fill" style="width:${Math.min(100,p)}%"></div></div><div class="hbar-frac">${p}%</div>`;
+    asWrap.appendChild(row);
+  });
+  document.getElementById('analyticsSavingsEmpty').style.display=state.savingsGoals.length?'none':'block';
+}
+
+/* ================= INIT ================= */
+if(DEMO_MODE){
+  document.getElementById('demoBuy').href = DEMO_BUY_URL;
+  document.getElementById('demoBannerLink').href = DEMO_BUY_URL;
+  document.getElementById('demoOverlay').addEventListener('click', e=>{ if(e.target.id==='demoOverlay') e.target.style.display='none'; });
+  __demo.refresh();
+}
+loadTheme();
+checkAuth();
+loadData();
+setGreeting();
+renderBattery();
+renderTasks();
+renderGoals();
+renderHabits();
+renderNotes();
+renderMood();
+renderBudget();
+renderDebt();
+renderSavings();
+renderHome();
+updateTimerDisplay();
+document.getElementById('sessionCount').textContent=state.focusSessions+' sessions today';
+</script>
+</body>
+</html>
